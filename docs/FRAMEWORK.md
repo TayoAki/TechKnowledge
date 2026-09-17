@@ -116,6 +116,35 @@ material:
   cache at the serving layer; the scheduled job and the model don't change. The brief
   war-games two or three plausible changes in advance.
 
+## What's assessed: three areas, two tracks
+
+The six rubric dimensions below are *how* you're judged. These are *what* gets covered.
+
+| Area | Assesses |
+|---|---|
+| **Problem Decomposition** (Business & Data) | Translating an ambiguous request into a concrete technical roadmap — success metrics, constraints, and the data entities that will power the solution |
+| **Architecture & Governance** | Designing end-to-end, from ingestion through to the application layer where end users interact — including data quality, security, scaling, and monitoring |
+| **Product Definition** (Scoping & MVP) | Prioritising ruthlessly under a tight constraint, down to the thinnest slice that proves business value |
+
+Cutting across all three, **breadth in both tracks and depth in at least one**:
+
+| Track | Topics |
+|---|---|
+| **Data Engineering** | pipelines · data quality · ingestion patterns · schema evolution |
+| **Full Stack Engineering** | application architecture · UX · API design · frontend/backend interaction |
+
+Two consequences worth stating, because both are easy to fail:
+
+**Breadth is not optional in the weaker track.** Depth in data engineering does not excuse
+saying nothing about API design or UX. The bar is explicitly both-plus-one, so the board
+tracks coverage live and challenges the gaps — *schema evolution* and *UX* most of all,
+since those are the two topics candidates skip.
+
+**The application layer is part of the architecture, not a footnote.** Area 2 names it
+explicitly: ingestion *through to where end users interact*. A design that stops at a
+curated table has failed the area regardless of how good the pipeline is, which is why
+at least one component at the application layer is a hard validator.
+
 ## The rubric
 
 Six dimensions, each scored **strong no hire / no hire / hire / strong hire**. Descriptors

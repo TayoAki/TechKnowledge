@@ -29,21 +29,27 @@ layer-by-layer generation.
 
 ## What a brief contains
 
-Nine layers, following the decomp round's own step order — note that **MVP scoping comes
-before high-level design**, which is what separates a deliberate slice from a shrunken
-architecture.
+Three assessed areas on a **60-minute budget that spends down**, plus depth and wrap.
+Overrun in one area visibly eats the others — independent stopwatches would hide the exact
+failure this teaches.
 
-| Layer | Output |
+| Segment | Min | Covers |
+|---|---|---|
+| **① Problem Decomposition** (Business & Data) | 18 | Stakeholder triage · pain point and reframe · solution options · success metrics with guardrails · constraints · data entities |
+| **② Architecture & Governance** | 15 | Requirements · scale read · components ingestion→application layer · data quality, security, scaling, monitoring |
+| **③ Product Definition** (Scoping & MVP) | 10 | The MVP as a **cut line through ②'s diagram** · coordination/integration/rollout bottlenecks · tech debt · next MVPs |
+| **Depth** | 15 | Deep dive in your claimed track, or the customer present-back |
+| **Wrap** | 2 | Requirement-change war-games, kill criterion, self-check |
+
+Cutting across all three — **breadth in both tracks, depth in exactly one:**
+
+| Track | Topics |
 |---|---|
-| **Triage** | The entity the prompt names vs. the actual stakeholder, resources given **and worth asking for**, the time bound — and the opening questions for whatever's missing |
-| **Pain point** | Candidates, the one to pursue, what they do today, and the reframe from broad complaint to targeted problem |
-| **Solutions** | 2–4 options optimising for different things, including any that need a resource the prompt never offered, and how to ask for it |
-| **MVP scope** | What ships in the window, costed against coordination / integration / rollout — not build time |
-| **Design** | 1–2 functional and 1–2 non-functional requirements, a scale read, every component mapped to a requirement |
-| **Deep dive** *or* **present-back** | Depth with pre-answered probes (Palantir, Databricks), or a de-jargoned customer summary (OpenAI) |
-| **Follow-ups** | Next MVPs ranked by blocker then impact, plus requirement-change war-games |
-| **Self-check** | The rubric dimensions a document can genuinely prepare — and the two it can't |
-| **Talk track** | The 45-minute runsheet, timed to the steps |
+| **Data Engineering** | pipelines · data quality · ingestion patterns · schema evolution |
+| **Full Stack Engineering** | application architecture · UX · API design · frontend/backend interaction |
+
+Coverage is tracked live. Depth in one track doesn't excuse silence in the other, so gaps get
+challenged — *schema evolution* and *UX* loudest, being the two most commonly skipped.
 
 ## Status
 

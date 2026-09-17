@@ -1,200 +1,189 @@
-# The flow — phases, and co-creating the architecture
+# The flow — 60 minutes, three areas, co-created
 
-Eight phases you advance through deliberately. In each one the AI owns the **scaffold**, you
-own the **content**, and the AI **challenges** what you put down.
+Three assessed areas plus depth and wrap, on **one 60-minute budget that spends down**. In
+each segment the AI owns the **scaffold**, you own the **content**, and the AI **challenges**
+what you put down.
 
-Worked with the seat-utilisation ask. Layers: [`BRIEF_SPEC.md`](BRIEF_SPEC.md). Process:
+Worked with the seat-utilisation ask. Schema: [`BRIEF_SPEC.md`](BRIEF_SPEC.md). Process:
 [`FRAMEWORK.md`](FRAMEWORK.md).
 
 ## The division of labour
 
 > **The AI draws the frame. You fill it. The AI pushes back.**
 
-This is the whole design. If the AI fills the board you learn nothing and can't use it in a
-room where nobody fills it for you. If the AI stays silent you're just drawing alone. The
-value is in the third move — the pushback — and that's what a solo whiteboard can't give you.
+If the AI fills the board you learn nothing usable in a room where nobody fills it for you.
+If it stays silent you're drawing alone. The pushback is the product.
 
-It also fixes a gap I'd previously called unfixable. Two of the six scored dimensions,
-**collaboration** and most of **user empathy**, are properties of a live exchange: no
-document can prepare them. Co-creating means you're rehearsing them directly. That takes the
-product from four servable dimensions to six.
+It also reaches two rubric dimensions a finished document can't. **Collaboration** and most
+of **user empathy** are properties of a live exchange — co-creating rehearses the exchange
+directly, so both become observable. Six servable dimensions instead of four, with the
+caveat enforced in the schema: only in pair posture.
 
-### Three postures, per phase
+### Three postures, per segment
 
 | Posture | Who fills it | Use when |
 |---|---|---|
-| **Pair** *(default)* | You lead, AI challenges and fills gaps you accept | Practising. The phases where doing it yourself *is* the skill |
-| **Draft** | AI fills, you edit | The mechanical phases — follow-ups, talk track — and when you're short on time |
-| **Blank** | You fill, AI silent until asked | Self-testing. Reveal-and-diff at the end |
+| **Pair** *(default)* | You lead, AI challenges and offers gaps you accept or reject | Practising — where doing it yourself *is* the skill |
+| **Draft** | AI fills, you edit | Wrap, and when you're short on time |
+| **Blank** | You fill, AI silent until asked | Self-testing, and forced in `drill_20` |
 
-Default is **pair** for phases 1–6 and **draft** for 7–8. A "fill this for me" escape hatch
-on every phase, because sometimes you're studying, not training. The blank-mode feature I'd
-planned separately is just the third posture — same mechanic, no extra machinery.
+## The clock
+
+```
+◷ 60:00 ── total remaining 41:48 ────────────────── debt +3:12 ⚠
+┌──────────────────┬──────────────┬─────────┬──────────┬────┐
+│ ① DECOMPOSITION  │ ② ARCH+GOV   │ ③ MVP   │  DEPTH   │ WR │
+│ 18m  ▓▓▓▓▓▓▓▓░░  │ 15m          │ 10m     │  15m     │ 2m │
+│ 21:12 elapsed ⚠  │              │         │          │    │
+└──────────────────┴──────────────┴─────────┴──────────┴────┘
+                     ↑ shrinks as area ① overruns
+```
+
+**Overrun is borrowed, not absorbed.** Spend 25 minutes in area 1 and you have 35 left for
+four segments — and the later blocks visibly narrow. Independent per-section stopwatches
+would hide the exact failure this is meant to teach: burning half the hour on requirements
+and never reaching the application layer.
+
+`overranBy` is recorded and never corrected. Running long is a scored signal.
+
+**Presets:** `full_60` (default) · `short_45` · `openai_40` (10 / 20 / 10, sets present-back
+mode) · `drill_20` (fast pass to make the framework automatic — too short for a
+challenge-and-respond cycle, so it runs blank and critiques at the buzzer) · `study`
+(untimed).
+
+Going back is always allowed. Revisiting a decision when new information arrives is a
+positive signal, and the clock keeps running — which is the honest cost.
+
+## The coverage meter
+
+Always on screen, spanning all three areas. **Breadth in both tracks, depth in one.**
+
+```
+DATA ENG    pipelines ✓   quality ✓   ingestion ✓   schema evolution ○   ← breadth 3/4 ✓
+FULL STACK  app arch ✓    UX ○        API ✓         front/back ○         ← breadth 2/4 ✗
+                                                    depth ▸ DATA ENG ▓▓▓▓▓
+```
+
+Depth in one track does **not** excuse absence in the other — the bar is both-plus-one. So
+gaps get their own challenges, and the two most-skipped topics get the loudest: *"nothing
+here says what happens when the source schema changes"* and *"who looks at this, and on
+what screen?"*
+
+The depth track you claim and the deep dive you run must be the same one. Claiming data
+engineering and then going deep on API design fails validation.
 
 ### The challenge library
 
-Here's the part that makes this cheap to build: **the validators become the dialogue.** Every
-invariant in `BRIEF_SPEC.md` was written as a silent regeneration check. In pair mode the
-same rule fires as a question to you instead.
+The cheap part of the build, and most of the felt value: **the validators are the dialogue.**
+Every invariant in `BRIEF_SPEC.md` fires as a silent regeneration check on the auto-build
+path, and as a question to you in pair mode.
 
-| Challenge | Fires when | Roughly |
-|---|---|---|
-| Named-vs-actual | Stakeholder = the entity the prompt named | "That's who's asking. Who has to change what they do?" |
-| Ask-for-it | A useful resource isn't in the given set | "Would contract terms help? You're allowed to ask." |
-| Workaround gap | Pain point set with no `today` | "What do they do about this now?" |
-| Restated reframe | Sharpened ≈ broad | "That's the same sentence. What specifically is failing?" |
-| Same-axis options | Two options optimise for one thing | "Those both optimise for visibility. What's a different bet?" |
-| Alternative | You've offered fewer than 2 real options | Adds a ghost card, marked AI-added |
-| Bottleneck denial | All three bottlenecks called negligible | "A week always costs something. Is there a documented API?" |
-| Requirement orphan | A component tagged to nothing | Box glows red — "what does this satisfy?" |
-| Scope creep | A third functional requirement | "That's F3. Either it's out of scope, or phase 4 was too generous." |
-| Over-engineering | Component heavier than the scale read | "At ~7,000 rows, does this need a queue?" |
-| Goodhart | A metric set with no guardrail | "If someone optimised that hard, what breaks?" |
-
-One rule set, two delivery modes. Nothing is maintained twice.
+| Challenge | Fires when |
+|---|---|
+| Named-vs-actual | Stakeholder = the entity the prompt named |
+| Ask-for-it | A useful resource isn't in the given set |
+| Workaround gap | Pain point set with no `today` |
+| Restated reframe | Sharpened ≈ broad |
+| Same-axis options | Two options optimise for one thing |
+| Goodhart | A primary metric with no guardrail |
+| Exogenous gap | No entity for calendar, weather, events |
+| **Schema drift** | No entity carries a `schemaChangeRisk` |
+| Requirement orphan | A component tagged to nothing |
+| Scope creep | A third functional requirement |
+| **Dead end** | No component at the application layer |
+| Over-engineering | Component heavier than the scale read |
+| Unowned check | A data-quality check with no owner |
+| Cut-line bloat | The MVP contains every component |
+| Bottleneck denial | All three bottlenecks called negligible |
 
 ---
 
-## The phase bar
+## ① Problem Decomposition · 18 min
 
-Always on screen:
+**Frame** *(≈2 min)* — AI draws three empty boxes: STAKEHOLDER, RESOURCES, TIME. You type
+"the cinema chain" → *"That's who's asking. Who changes what they do on Monday morning?"*
+Your first answer stays struck through above the revision. Then *"the prompt named no data
+at all — what would you want, and what would you ask for?"*
 
-```
-① frame ─ ② pain ─ ③ options ─ ④ MVP ─ ⑤ arch ─ ⑥ depth ─ ⑦ next ─ ⑧ review
-                              ▲ 4:12 / 5:00        posture: pair ▾
-```
-
-Elapsed against the step's budget, because time allocation is itself scored. **Going back is
-always allowed** — revisiting an earlier decision when new information appears is a positive
-signal, not a correction, so the bar never locks a phase behind you.
-
-## ① Frame · 1–2 min
-
-**AI draws:** three empty boxes — STAKEHOLDER, RESOURCES, TIME — and an empty question rail.
-
-**You fill:** who you're building for, what you've got, how long you have.
-
-**AI challenges:** you type "the cinema chain" → *"That's who's asking. Who actually changes
-what they do on Monday morning?"* You revise to the scheduler; the board strikes through your
-first answer and keeps it visible. Then: *"The prompt named no data at all — what would you
-want, and what would you ask for?"* And: *"No time bound. That's a question, not an
-assumption."*
-
-**Ends when:** all three hold a value or an explicit question. Unknowns leave as amber chips,
-which is correct — they become your opening questions.
-
-## ② Pain point · 5–8 min
-
-**AI draws:** a tree rooted at your stakeholder, branches empty.
-
-**You fill:** candidate pain points. Pick one.
-
-**AI challenges:** the workaround question, every time, because it's the highest-leverage
-question in the round — *"What does the scheduler do about this today?"* You answer: copies
-last week's grid, adjusts by gut. *"So where does the time actually go — the analysis, or
-something else?"*
-
-**You write the reframe yourself.** The AI will not write it for you in pair mode; it only
-tells you when yours is still the original sentence in different words. When you land it, the
-new statement replaces the original ask at the top of the board:
+**Pain point** *(≈7 min)* — AI draws the tree rooted at your stakeholder. It asks the
+workaround question every time: *"What does the scheduler do about this today?"* **You write
+the reframe yourself** — in pair posture the AI only tells you when yours is the original
+sentence reworded. When you land it, it replaces the ask at the top of the board:
 
 > ~~seat utilisation is low~~ → **the scheduler can't test a proposed grid before publishing**
 
-**Ends when:** sharpened ≠ broad, and you've said what it changes downstream.
+**Options** *(≈4 min)* — you propose; *"A and B both optimise for visibility — what's a
+different bet?"* Stop at two and a **ghost card** appears, marked AI-added.
 
-## ③ Options · 5 min
+**Metrics** *(≈3 min)* — the `Metric | Baseline | Target | Guardrail` grid, empty. You fill
+it. Every primary metric with an empty guardrail triggers: *"if someone optimised load
+factor hard, what breaks?"* → total admissions, because you can always improve a ratio by
+cutting showings. Baselines are allowed to be `must_measure_first`; "I'd need eight weeks of
+history" is a strong answer, not a gap.
 
-**AI draws:** empty card slots.
+**Entities** *(≈2 min)* — you write the grain sentence first (*one row per showing*), then
+place entities. Challenges: the exogenous gap, and the schema-drift one that feeds the
+data-engineering track.
 
-**You fill:** your solution options — what each optimises for, what it uses.
+## ② Architecture & Governance · 15 min
 
-**AI challenges:** *"A and B both optimise for visibility — what's a genuinely different
-bet?"* If you stop at two, it adds a **ghost card** marked AI-added, so you always know what
-was yours. And: *"Does any of these need something we weren't given?"* — which is how the
-dashed-box resource ask gets drawn.
+**Requirements first.** F1, F2, NF1, NF2 — and a third functional triggers *"that's F3.
+Either it's out of scope, or area 1 was too generous."*
 
-**Ends when:** you pick one and say why. Rejected cards dock to the margin; hover shows the
-board they'd have produced.
-
-## ④ MVP · 5 min
-
-**AI draws:** your time bound as an empty bar with three lanes — coordination, integration,
-rollout.
-
-**You fill:** drag each lane's size. Name the tech debt you're taking.
-
-**AI challenges:** *"You've sized integration at nothing. Is there a documented POS export
-API?"* You check: there isn't. The lane grows to two-thirds of the bar and the board writes
-the narration line, because reasoning silently scores nothing.
-
-**Ends when:** all three costed, at least one non-negligible, deferred items below the line
-with their blockers.
-
-## ⑤ Architecture · the co-creation centrepiece · 5 min
-
-This is the phase the whole design is for.
-
-**AI draws:** an empty requirements corner and an empty canvas.
-
-**You fill:** requirements first — F1, F2, NF1, NF2. Then you place components, one at a time.
-
-**AI challenges, per box:**
-
-- *"Which requirement does this satisfy?"* No answer → the box glows red and stays red. An
-  orphan box either doesn't belong or reveals a requirement you never wrote down.
-- *"You have nothing producing the denominator for F1."* → offers a **ghost box** (capacity
-  reference). You accept or reject; accepted ghosts stop being ghosts.
-- *"At ~7,000 rows, does the aggregation need a queue?"* → over-engineering, checked against
-  the scale read you established.
-- You type a third functional requirement → *"That's F3. Either it's out of scope, or phase 4
-  was too generous — want to go back?"* The fix is upstream, and the bar lets you.
+**Then components, one at a time**, and per box: *"which requirement does this satisfy?"*
+No answer → it glows red and stays red. An orphan box either doesn't belong or reveals a
+requirement you never wrote down.
 
 ```
-CSV drop ──▶ landing ──▶ aggregation ──▶ report
-  [F1]        [F1]          [F1]         [NF1]
+CSV drop ──▶ landing ──▶ aggregation ──▶ API ──▶ scheduler's view
+  [F1]        [F1]          [F1]        [F2]        [NF1] ← application layer
                   ▲
-            capacity ref        prediction fn ──▶ what-if reply
-           [F1] ← ghost,         [F2]                [F2]
-              you accepted
+            capacity ref  ← ghost box you accepted
+              [F1]
 ```
 
-**Ends when:** every box carries a requirement tag and the flow connects end to end.
+**The application layer is not optional.** Area 2 asks for ingestion *through to where end
+users interact*, so a board that stops at a curated table triggers the dead-end challenge:
+*"who looks at this, and on what screen?"* This is also where the full-stack track earns its
+breadth.
 
-## ⑥ Depth, or the customer view · 15 / 10 min
+**Governance is the second half of the segment**, not a footnote — four sub-panels for data
+quality, security, scaling, monitoring. Each quality check needs a threshold **and an
+owner**; a check with no owner never runs. Saying "no PII in scope here" is a real answer
+and removes a whole compliance surface.
 
-You pick the area and you lead. **Here the AI stops being a collaborator and probes** —
-scoped to this one phase, which is exactly what happens in the round.
+## ③ Product Definition · 10 min
 
-*Deep dive:* your chosen box expands in place. The AI asks the probes a real interviewer
-would (*"how do you handle refunds that land after the showing?"*) and tells you when an
-answer hand-waves.
+**You draw a line through area 2's diagram.** Everything inside ships in the window;
+everything outside is deferred with a blocker. That's why this segment is only 10 minutes —
+the design already exists, so the cut is fast.
 
-*Present-back:* the board flips to the customer view. You write the summary; the AI flags
-every term from the jargon blocklist as you type, since de-jargoning is the layer's whole
-purpose.
+```
+CSV drop ──▶ landing ──▶ aggregation ┃──▶ API ──▶ scheduler's view
+                             ╵        ┃    ····      ············
+            capacity ref ────╯        ┃   deferred: blocked on the
+                                      ┃   manual version proving useful
+                            MVP CUT ──┛
+```
 
-## ⑦ Next · 5 min · *draft posture*
+A cut line containing every component isn't a cut, and triggers a challenge. Then the
+week-bar: three lanes — coordination, integration, rollout. *"You've sized integration at
+nothing. Is there a documented POS export API?"* There isn't; the lane grows to two-thirds
+and the board writes the narration, because silent reasoning scores nothing.
 
-**AI drafts**, you reorder — ranking by blocker-then-impact is mechanical once the content
-exists, so there's no skill being practised. Requirement-change chips appear; click one and
-only the affected components light up.
+## Depth · 15 min
 
-## ⑧ Review
+You pick the area and lead. **Here the AI stops collaborating and probes**, scoped to this
+one segment — which is what the round does. It must be within your claimed depth track.
 
-The talk track rail, the export, and a self-check across **all six** dimensions — including
-the two that only co-creation can evidence:
+*Present-back mode instead:* the board flips to the customer view, and every blocklisted
+term is flagged as you type.
 
-| Dimension | Evidenced by |
-|---|---|
-| Ambiguity handling | What you triaged unprompted vs. what the AI had to ask for |
-| User empathy | Whether you asked the workaround question or waited to be asked |
-| Outcome orientation | Whether your components traced to requirements first time |
-| Scrappy | Whether you cut before or after being challenged |
-| Technical depth | How many probes you answered without hand-waving |
-| **Collaboration** | Ghost boxes accepted vs. rejected with a reason; challenges you engaged vs. absorbed silently |
+## Wrap · 2 min · *draft posture*
 
-That last row is only measurable because you built it together. Rejecting a ghost box *with
-a reason* scores higher than accepting it — collaboration is not compliance.
+Next MVPs ranked blocker-then-impact, the kill criterion, requirement-change chips. Then the
+self-check across all six dimensions, with `collaboration` scored from ghost boxes rejected
+*with a reason* versus accepted silently — collaboration is not compliance.
 
 ---
 
@@ -203,26 +192,23 @@ a reason* scores higher than accepting it — collaboration is not compliance.
 | Need | Primitive |
 |---|---|
 | Board state, streaming | `useAgent()` → `agent.state` |
-| Phase gates, ghost-box accept/reject | `useHumanInTheLoop` — pauses in `Executing`, resumes on `respond()` |
-| Agent placing a ghost box or tagging one of yours | `useFrontendTool`, Zod params, handler mutates board |
-| **The agent seeing your board as you draw** | `useAgentContext({ description, value })` — the load-bearing one |
-| Phase-appropriate nudges | `useConfigureSuggestions` |
-| Saved boards, resume mid-phase | `useThreads` + durable `AgentRunner` |
+| Segment gates, ghost accept/reject | `useHumanInTheLoop` — pauses in `Executing`, resumes on `respond()` |
+| Agent placing a ghost box or tagging one of yours | `useFrontendTool`, Zod params |
+| **The agent seeing your board as you draw** | `useAgentContext({ description, value })` — load-bearing |
+| Segment-appropriate nudges | `useConfigureSuggestions` |
+| Saved boards, resume mid-segment | `useThreads` + durable `AgentRunner` |
 
-### The reactive loop, and its cost
+**The clock is client-side state, not agent state.** It must keep running while a model call
+is in flight, so it lives in the React tree and is *reported into* `useAgentContext` — never
+driven by the agent. An agent-owned timer would stall on every request and quietly hand back
+the minutes the segment was meant to cost.
 
-Co-creation means the agent runs on **board changes**, not just your messages — which is a
-different cost shape from the auto-build flow. Two tiers:
+**Cost shape.** Co-creation means the agent runs on board edits, not just messages. Two
+tiers: a debounced `claude-haiku-4-5` watcher (~2s after you stop editing) for the structural
+challenges — orphan box, same-axis options, scope creep, missing owner — and one
+`claude-opus-5` reviewer per segment exit for the judgment calls: is the reframe real, does
+the cut line actually ship, does the design match the scale read. Five Opus calls a session,
+with the cheap model absorbing the chatter.
 
-- **Watcher** — `claude-haiku-4-5`, debounced ~2s after you stop editing. Cheap, fires the
-  narrow challenges (orphan box, same-axis options, scope creep). These are near-deterministic
-  checks on structure, so they don't need a large model.
-- **Reviewer** — `claude-opus-5` on phase-exit, once. Judges the things that need judgment:
-  is the reframe real, is the MVP actually shippable, does the design match the scale read.
-
-Without the split, every keystroke pays Opus prices. With it, the expensive model runs eight
-times per session and the cheap one absorbs the chatter.
-
-**The board stays a constrained diagram** — eight known shapes, not a freeform canvas. That's
-what lets the agent read your board reliably enough to challenge it. You cannot write
-"which requirement does this satisfy?" against arbitrary shapes on an infinite canvas.
+**Challenge budget.** An AI questioning every box becomes noise. Cap per segment, never
+repeat a dismissed challenge, and stay quiet once the board is sound.
