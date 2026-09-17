@@ -21,6 +21,7 @@ layer-by-layer generation.
 | Doc | What's in it |
 |---|---|
 | [`docs/WORKED_EXAMPLE.md`](docs/WORKED_EXAMPLE.md) | **Start here.** A full brief for the seat-utilisation ask. The clearest statement of what this product is, and the quality bar for generated output. |
+| [`docs/FLOW.md`](docs/FLOW.md) | The flow, beat by beat — what appears on the whiteboard at each stage, and the three places it stops for your input |
 | [`docs/FRAMEWORK.md`](docs/FRAMEWORK.md) | The process model the generator follows — the three elements, the six steps, the two company endings, the rubric, and the provenance rules |
 | [`docs/PLAN.md`](docs/PLAN.md) | Product and operating plan — interaction model, CopilotKit architecture, generation pipeline, domain packs, economics, milestones, risks |
 | [`docs/BRIEF_SPEC.md`](docs/BRIEF_SPEC.md) | The `DecompositionBrief` schema and the invariants a generated brief must satisfy |
