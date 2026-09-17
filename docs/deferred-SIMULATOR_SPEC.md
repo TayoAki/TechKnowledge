@@ -1,3 +1,11 @@
+> **Deferred — not the current product line.**
+>
+> This schema belongs to the *simulator* mode (an adversarial interviewer that hides the
+> answer key and grades you). The product pivoted to the **guided decomposition
+> workbench** — see [`PLAN.md`](PLAN.md) and [`BRIEF_SPEC.md`](BRIEF_SPEC.md). Kept because
+> the simulator is the natural second act: once a user has read 30 worked briefs, testing
+> them is the obvious upsell, and the hidden-answer-key design still holds.
+
 # `ScenarioSpec` — the scenario schema
 
 A scenario is **not a prompt string**. It is a small public half and a large hidden half.
