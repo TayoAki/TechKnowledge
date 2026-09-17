@@ -50,22 +50,44 @@ deliberately rather than drifting into one. See §12.
 One box on the landing page. Everything else unfolds from it.
 
 1. **Paste the ask.** "We want to analyze seat utilization and recommend better showtimes."
-2. **It restates the problem and shows its own assumptions** — domain, org type, who owns
-   the decision — all editable. Modelling the behaviour it's teaching, and correcting a
-   wrong inference here is much cheaper than discovering it at layer 5.
-3. **The framing menu.** Three or four materially different concrete objectives, each with
-   what it optimises for, what it assumes, what it *cannot* answer, and effort. One is
-   recommended, with the reason. The user picks, or writes their own.
-4. **The brief builds beside the chat**, layer by layer, streaming so sections materialise
+2. **Triage.** It separates the entity the prompt *names* from the actual stakeholder,
+   lists the resources given **and the ones worth asking for**, and pins the time bound.
+   Whatever's missing becomes the opening questions. This is the strongest single screen in
+   the product: from one sentence you get who you're really building for and the four
+   questions to ask before designing anything.
+3. **Pain-point excavation.** Candidate pain points, the one to pursue, and — the highest
+   -leverage field in the brief — **what the stakeholder does today**, which is what turns a
+   broad complaint into a targeted problem. The reframe it produces changes every
+   downstream layer.
+4. **The solution menu.** Two to four options that optimise for materially different things,
+   each naming the resources it uses and any resource it needs that the prompt never
+   offered, with the exact way to ask for it. One is recommended, with the reason.
+5. **The brief builds beside the chat**, layer by layer, streaming so sections materialise
    rather than appearing in one burst. Each layer is another decision gate.
-5. **Every layer keeps a "what else / why this" toggle.** The options not taken stay in the
+6. **Every layer keeps a "what else / why this" toggle.** The options not taken stay in the
    document. This is the learning mechanism and the thing a generic chatbot doesn't do.
-6. **Everything is editable**, and edits propagate — change the metric and the MVP's exit
+7. **Everything is editable**, and edits propagate — change the metric and the MVP's exit
    criterion should follow.
-7. **Export** the filled brief, and save it to a personal library.
+8. **Export** the filled brief, and save it to a personal library.
 
-The layers, and how they map to the three competency areas being assessed, are specified
-in [`BRIEF_SPEC.md`](BRIEF_SPEC.md). The output quality bar is
+The process being encoded is specified in [`FRAMEWORK.md`](FRAMEWORK.md) and the layer
+schema in [`BRIEF_SPEC.md`](BRIEF_SPEC.md).
+
+### Company modes
+
+The round doesn't end the same way everywhere, and that changes what the brief must prepare.
+Palantir and Databricks close with a **deep dive** — the interviewer probes one area, and you
+steer which. OpenAI and customer-engineering-leaning loops close with a **present-back**,
+where you summarise the solution to the interviewer as the non-technical customer.
+
+So the user picks a target company and the brief generates the matching ending: a chosen
+depth area with pre-answered probes, or a de-jargoned summary with two trade-offs and next
+steps. It's one conditional layer to build, and it's the most concrete "this was made for my
+interview" signal the product can send.
+
+The deep-dive layer is **pluggable by area** (data model, ML, app performance, integration,
+security), which is where domain depth lives. That matches how the round actually works:
+depth is chosen to match your spike, not spread evenly. The output quality bar is
 [`WORKED_EXAMPLE.md`](WORKED_EXAMPLE.md) — read that first; it's the clearest statement of
 what this product is.
 
@@ -148,17 +170,21 @@ old plan — it was a nightly batch job before. Implications:
 - **Layer instructions go in `messages[]` as mid-conversation system messages** on
   `claude-opus-5`, not by editing top-level `system`. Eight layers means eight
   invalidations otherwise.
-- **Validate, then regenerate.** The invariants in `BRIEF_SPEC.md` are assertions. A primary
-  metric with a null guardrail fails and re-requests that layer — the user never sees it.
+- **Validate, then regenerate.** The invariants in `BRIEF_SPEC.md` are assertions. Three
+  functional requirements, or a reframe that merely restates the prompt, fails and
+  re-requests that layer — the user never sees it.
+- **The requirements cap is an upstream signal.** More than two functional requirements at
+  L4 means L3 under-scoped, so the regeneration targets **L3**, not L4. Getting this wrong
+  produces briefs that trim the design instead of tightening the scope.
 - **Perceived latency is a product surface.** A brief is ~8 sequential calls with thinking
   on the judgment-heavy layers. Stream everything, render each layer the moment it lands,
   and let the user start reading layer 1 while layer 4 is still generating.
 
 | Layer | Model | Note |
 |---|---|---|
-| 1 Framing, 2 Metrics/guardrails, 7 Trade-offs | `claude-opus-5`, adaptive thinking, `effort: high` | The judgment-heavy layers. Guardrails are the single highest-signal field in the brief — never economise here |
-| 4 Entities, 5 Architecture, 6 MVP | `claude-opus-5`, `effort: medium` | Structured expansion, strongly shaped by the domain pack |
-| 3 Constraints, 8 Talk track | `claude-sonnet-5` | Largely mechanical once earlier layers are fixed |
+| L0 Triage, L1 Pain point, L2 Solutions | `claude-opus-5`, adaptive thinking, `effort: high` | The judgment-heavy layers. The stakeholder gap and the reframe are the highest-signal outputs in the brief — never economise here |
+| L3 MVP, L4 Design, L5 Deep dive | `claude-opus-5`, `effort: medium` | Structured expansion, strongly shaped by the domain pack |
+| L6 Follow-ups, L7 Self-check, L8 Talk track | `claude-sonnet-5` | Largely mechanical once the earlier layers are fixed |
 
 Pricing per 1M tokens: Opus 5 $5 in / $25 out; Sonnet 5 $2 / $10. Cache reads bill at a
 fraction of input. Expect a brief to land well under a dollar of model spend — output
@@ -171,11 +197,12 @@ staging; a timestamp in the prefix silently zeroes the hit rate and the only sym
 The obvious objection: a generic chatbot produces a decent decomposition. This is the
 central strategic question of the pivot, and there are five real answers.
 
-1. **The template is fixed, complete, and validated.** Every brief has all eight layers,
-   every primary metric has a guardrail, every decision keeps its alternatives, every MVP
-   names at least three cuts with reasons. Enforced in code. A chatbot gives you whatever
-   shape it felt like that day, and silently omits the guardrail column — which is the
-   column that matters.
+1. **The template is fixed, complete, and validated.** Every brief triages all three
+   elements, separates the named entity from the actual stakeholder, costs all three
+   scoping bottlenecks, caps requirements at two, and maps every component to one.
+   Enforced in code. A chatbot gives you whatever shape it felt like that day — and the
+   things it quietly skips (the stakeholder gap, the current workaround, the resource it
+   should have asked for) are exactly the ones that carry the signal.
 2. **Domain packs.** Guardrails and entity models that are *correct* for cinema exhibition,
    emergency dispatch, claims processing, field logistics. That distributor-minimum-showings
    constraint isn't analytics knowledge, it's domain knowledge, and it's the difference
@@ -270,11 +297,12 @@ has already read.
 | Risk | Mitigation |
 |---|---|
 | **Generic output.** The failure that kills the product. | Domain packs, specificity evals in CI, and a human-reviewable pack authoring path. Treat "could this sentence appear in any brief?" as a bug. |
-| **"I could just ask a chatbot."** | §7. Lead the marketing with the guardrail column and the preserved alternatives — the two things a chat transcript doesn't give you. |
+| **"I could just ask a chatbot."** | §7. Lead with the triage screen and the reframe — the stakeholder gap, the resource you should have asked for, the current workaround. A chat transcript doesn't reliably surface any of them, and they're what the round actually scores. |
 | **It hands you fish.** | Blank mode; positioning as prep-and-real-work rather than in-room. Be straight about this — overclaiming is how you lose the users who'd pay most. |
 | **Perceived latency** — eight sequential calls. | Stream per layer, render on arrival, let reading start at layer 1. Never a single spinner. |
 | **Pack maintenance** doesn't scale with headcount. | Ten good packs, not a thousand thin ones. Mine the override log — users tell you what's wrong for free. |
 | **CopilotKit moves fast**; v2 reorganised the hooks and some docs are placeholders. | Pin versions, keep domain logic behind our own interfaces, keep the AG-UI boundary thin. |
+| **Content provenance — the sharpest legal risk.** The process model is drawn from a *paid* third-party course, which makes this materially more acute than working from a public post. | Encode the process; never ship the source text — no lesson prose, rubric descriptors, or worked narration copied through into briefs, prompts, packs, or marketing. Our rubric wording is original. Never ship their prompt bank: briefs decompose *the user's own* ask, which is both safer and the better product. Keep the reference list in-repo so each idea's provenance stays traceable. See [`FRAMEWORK.md`](FRAMEWORK.md) §Provenance, and spend a lawyer's hour before launch. |
 
 ### Forks I'd want your call on
 

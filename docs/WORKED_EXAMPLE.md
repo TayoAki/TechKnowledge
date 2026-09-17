@@ -1,191 +1,192 @@
 # Worked example — the quality bar
 
-The brief the app should produce from a real vague ask. This is the reference output:
-generated briefs are graded against this level of specificity, and the invariants in
-[`BRIEF_SPEC.md`](BRIEF_SPEC.md) exist to enforce it.
+The brief the app should produce. Reference output: generated briefs are graded against this
+level of specificity, and the invariants in [`BRIEF_SPEC.md`](BRIEF_SPEC.md) enforce it.
 
 > **Raw ask:** "We want to analyze seat utilization and recommend better showtimes."
 
+Note what this prompt *doesn't* give you: no stakeholder beyond "we", no named data sources,
+no time bound. All three are missing, so all three become opening questions — which is the
+brief's first output, not a gap in it.
+
 ---
 
-## 0 · Restatement, and what I'm assuming
+## L0 · Triage
 
-They want to change the showtime schedule so auditoriums run fuller. Note that one
-sentence contains **two different deliverables**: a *measurement* system (what is
-utilisation today, honestly) and a *decision* system (what should the schedule be). Most
-of the risk is in the first one, and most of the excitement is in the second.
+| Element | Reading |
+|---|---|
+| **Named entity** | "We" — the exhibitor, presumably a regional chain |
+| **Actual stakeholder** | The **regional programmer/scheduler** who publishes the weekly grid |
+| **The gap** | The exec asking feels the revenue pain; the person whose behaviour has to change is the scheduler. Design for the scheduler or nothing ships. `must_confirm` |
+| **Resources given** | None named. Ticketing/POS data is *implied*, not stated |
+| **Time bound** | Absent → ask. **Confirmed: one week** |
 
-Assumed, editable, and worth confirming out loud: a regional exhibitor, 10–40 sites;
-scheduling is done weekly by a human; a POS/ticketing system of record exists; distributor
-contracts constrain what can be scheduled.
+**Resources to ask for** — never assume the listed set is the whole set:
 
-## 1 · Framing — four ways to make this granular
+| Resource | Why | How to ask |
+|---|---|---|
+| Distributor contract terms | Minimum-showings clauses are a *hard* constraint; a recommendation that breaches one is worse than useless | "Are there contractual minimums per title we'd have to respect?" |
+| Local events / school calendar | Dominates the highest-value days | "Do we have anything on local events or term dates?" |
+| Seating-plan system | POS capacity may be stale after refurbishments | "Where does authoritative seat count per screen live?" |
 
-The app's first move is a menu, not an answer. These optimise for genuinely different
-things, which is why the downstream system differs for each.
+**Opening questions:** Who actually sets the schedule today, and would they use this? · What's the timeline to ship something? · Are contractual minimums in play? · Is pricing in scope or fixed?
 
-| | Framing | Optimises for | Assumes | Can't answer | Effort |
-|---|---|---|---|---|---|
-| **A** ✅ | **Utilisation truth set + constrained schedule recommender** | Load factor and revenue per screen-hour | The schedule is the lever | Whether the wrong *titles* were booked | M |
-| B | Demand forecast per title × daypart; humans still schedule | Forecast accuracy | Schedulers will trust and use it | What the optimal schedule actually is | M |
-| C | Joint yield optimisation — price × showtime together | Revenue per screen-hour, directly | Dynamic pricing is contractually and politically possible | Little, if pricing is fixed by distributor terms | L |
-| D | Screen/format allocation — which titles get which screens at all | Portfolio mix | Booking decisions are in scope | Within-day placement | L |
+## L1 · Pain point — and the reframe
 
-**Recommended: A.** It's what was asked, and it builds the measurement foundation that B,
-C, and D all silently depend on. You cannot optimise a schedule against a load-factor
-number you don't trust yet.
+**Candidates:** the exec wants revenue per screen-hour up · the scheduler is guessing ·
+marketing wants to know what to promote.
 
-**Raise D anyway, even though you're not picking it.** If utilisation is bad because the
-wrong titles are on the wrong screens, showtime placement is the wrong lever and no
-schedule change will fix it. Naming that the request may be aimed at the wrong thing — and
-then proceeding with what was asked — is the move that separates a strong answer from a
-compliant one.
+**Chosen: the scheduler is guessing** — they're the decision owner, and their behaviour is
+the only lever that changes anything.
 
-### Concrete objective (resolves from A)
+**What they do today** *(the highest-leverage question in the whole interview)*: they copy
+last week's grid and adjust by gut, distributor pressure, and a spreadsheet of last week's
+per-showing sales. What's actually lost isn't analysis *time* — it's that they have **no
+per-daypart view** and **no way to sanity-check a proposed grid before publishing it.**
+Once published, a bad week is a bad week.
 
-Build a utilisation truth set at showing grain — title, theatre, screen, format, showtime,
-seating capacity, tickets sold by price class, refunds and exchanges, plus calendar and
-local-event effects. From it compute load factor by daypart, revenue per screen-hour, and
-sellout/turnaway frequency. Then generate schedule recommendations under hard constraints
-(distributor minimums, print/format availability, staffing, turnaround and cleaning time),
-delivered into the scheduler's existing weekly workflow.
+*Questions that reveal this:* "Walk me through how next week's grid gets made." · "When you
+change a showtime, how do you know afterwards whether it worked?"
 
-## 2 · Success metrics
+**The reframe:**
 
-| Metric | Baseline | Target | Guardrail |
+> "Seat utilisation is low" → **"The scheduler has no reliable per-daypart load signal, and
+> no way to test a proposed change before committing to it."**
+
+**What this changes downstream:** the ask sounds like an optimiser. The reframe says it's a
+*decision-support and what-if* tool. That is a materially cheaper, faster, more adoptable
+build — and it's the difference between shipping in a week and shipping in a quarter.
+
+## L2 · Solution options
+
+| | Option | Optimises for | Needs unlisted? | Effort |
+|---|---|---|---|---|
+| A | Truth set + weekly daypart report (measure only) | Visibility | — | S |
+| **B** ✅ | **Truth set + what-if checker** — scheduler proposes a change, tool predicts load | Decision confidence before publishing | Distributor terms | M |
+| C | Constrained optimiser that generates the grid | Theoretical best grid | Distributor terms, staffing | L |
+| D | Screen/format allocation, upstream of showtimes | Portfolio mix | Booking data | L |
+
+**Recommended: B.** Not because it's the middle option — because the reframe points at it.
+The pain is "I can't check before I commit", not "I can't compute an optimum". A optimises
+nothing; C solves a problem the scheduler didn't report and will distrust on week one.
+
+**Raise D anyway.** If utilisation is bad because the wrong titles are on the wrong screens,
+showtimes are the wrong lever entirely. Naming that the request may be aimed at the wrong
+thing — then proceeding with what was asked — is the move that separates a strong answer
+from a compliant one.
+
+## L3 · MVP in one week
+
+**Ships:** utilisation truth set for three theatres, weekday-matinee daypart report, and a
+**manually-run** what-if: the scheduler emails a proposed change, we return predicted load.
+
+**Proves:** that the predicted load is close enough that the scheduler would act on it.
+
+**Delivery:** a spreadsheet and an email. No UI.
+
+**Where the week actually goes** — build time is not the constraint:
+
+| Bottleneck | Cost | Narration |
+|---|---|---|
+| **Coordination** | some | "The POS data sits with a team we already work with, so access is a conversation not a project. I need two sessions with the scheduler — that's the real ask." |
+| **Integration** | **most** | "There's no documented POS export API, so we'd build a connector or negotiate a nightly CSV drop. That eats most of the week, and it's the thing I'd de-risk on day one." |
+| **Rollout** | negligible | "It's a spreadsheet to one person, so there's no deployment story at all in v1 — which is exactly why I'd keep it that way." |
+
+**Deliberate tech debt:** hardcode the three theatres' seat counts rather than syncing the
+seating-plan system (pay back when a fourth site joins) · nightly CSV drop instead of a
+connector (pay back when this survives past a pilot).
+
+**Deferred:** distributor-minimum checking *(blocked on getting contract terms)* ·
+self-serve what-if UI *(blocked on the manual version proving useful)* · all other dayparts
+*(blocked on matinee results)*.
+
+## L4 · High-level design
+
+**Functional (2):** produce load factor by daypart per theatre from POS and capacity,
+weekly · given a proposed showtime change, return a predicted load factor.
+
+**Non-functional (2):** delivered before the weekly grid deadline — a *deadline*, not a
+latency SLA · numbers reproducible after the fact, since refunds arrive late.
+
+**Scale — and here a number earns its place:** three theatres × ~8 screens × ~5 showings/day
+× 8 weeks ≈ **7,000 rows**. That's decisive rather than ritual: it rules out streaming, a
+warehouse, and distributed anything. The whole thing fits in a spreadsheet, and saying so
+out loud is worth more than any architecture diagram.
+
+| Component | Satisfies | Narration |
+|---|---|---|
+| Nightly POS CSV drop → landing store | F1 | "Immutable raw, partitioned by business date — so when refunds land late I restate rather than overwrite." |
+| Capacity reference (hardcoded v1) | F1 | "The denominator of every number here. Stale capacity makes the whole report wrong, so it's explicit and versioned." |
+| Daypart aggregation job | F1 | "Weekly cadence matches the decision cadence. Nothing here needs to be faster than the grid deadline." |
+| Prediction function | F2 | "Same aggregation, run on a hypothetical grid. Reusing the measurement path is why F2 is nearly free once F1 exists." |
+| Weekly report + what-if reply | NF1 | "Lands Thursday for a Friday deadline." |
+
+## L5a · Deep dive — data model
+
+*Chosen because this is where the solution lives or dies: every number depends on a
+denominator nobody has validated. "The data model is the part most likely to make this
+wrong rather than just slow — I'd like to go deep there. Does that work?"*
+
+**Grain: one row per showing — theatre × screen × scheduled start.**
+
+| Entity | Role | The catch |
+|---|---|---|
+| `Showing` | fact | Scheduled vs. actual start; cancellations |
+| `TicketSale` | fact | Per price class — utilisation without price class misleads |
+| `Refund` / `Exchange` | fact | ⚠️ **Late-arriving.** Lands after the showing, so naive load factor is inflated on exactly the days being optimised |
+| `Screen` | dimension | ⚠️ Capacity **changes** on refurbishment — needs history, or old weeks get scored against today's seat count |
+| `Calendar` | **exogenous** | ⚠️ Holidays, term dates, local events. The most-forgotten entity, and it dominates peak days |
+| `StaffRoster` | operational | ⚠️ A recommendation nobody can staff isn't a recommendation |
+
+**Likely probes, and answers:**
+
+- *"How do you handle the late refunds?"* — Restatement, not update-in-place. Report with a
+  stated lag and a confidence note, so a number already shown to the exec never silently changes.
+- *"What if capacity is wrong?"* — It's the denominator, so it's a blocking quality check:
+  non-null and > 0 for every active screen, or the run doesn't publish.
+- *"Why is calendar a separate entity?"* — Because the highest-value days are the ones it
+  explains, and without it the model attributes a holiday spike to the showtime.
+
+## L6 · Follow-ups, pre-answered
+
+**What ships next** — ranked by blocker first, impact second:
+
+| | Adds | Unblocked by | Impact |
 |---|---|---|---|
-| **Load factor** (tickets ÷ capacity), by daypart | **Must measure first** — needs ~8 weeks of POS history; expect wide daypart variance | +4pp on weekday matinee, the worst daypart | **Total admissions must not fall.** Load factor is trivially "improved" by cutting showings — that's the Goodhart trap and the guardrail closes it |
-| **Revenue per screen-hour** | Estimable from POS × screen-hours once grain is fixed | +3% chain-wide | **Concession revenue per admission must not drop.** Shifting audiences to late showings changes the spend mix |
-| **Sellout / turnaway frequency** | Count of showings ≥95% sold | Reduce turnaways on peak titles | **Not a target of zero.** Some sellouts are correct pricing; this is a floor, not something to eliminate |
-| Schedule churn | n/a | — | **Cap weekly changes per site.** Churn has real costs: staff rescheduling, customer confusion, marketing reprints |
-| Distributor minimum showings | Contractual, per title | — | **Hard breach — never.** Violating a minimum-showings clause is a legal problem, not a metric regression |
+| 2.0 | Distributor-minimum constraint checking | Obtaining contract terms | high |
+| 3.0 | Self-serve what-if UI | 2.0 accepted and used | medium |
+| 4.0 | Grid optimiser (framing C) | 3.0 trusted; feedback loop of realised vs. predicted load | high |
 
-The guardrail column is the part that's hard to fake and the part interviewers listen for.
-Two of these are non-obvious enough that a generic answer misses them: the admissions
-guardrail (the metric is gameable in the exact direction the project pushes) and the
-distributor clause (domain knowledge, not analytics).
+Note 4.0 is high-impact but can't be sequenced first — it depends on the trust that 2.0 and
+3.0 build. That ordering *is* the answer to this follow-up.
 
-## 3 · Constraints, assumptions, open questions
+**Requirement-change war-games:**
 
-**Hard constraints:** distributor minimum showings and hold-over terms; physical
-turnaround time between showings (cleaning, ingress/egress); format availability (one IMAX
-screen can't run two titles at once); staffing rosters and labour rules; a fixed number of
-screens per site.
-
-**Assumptions to state and label as such:**
-
-| Assumption | How I'd validate | If wrong |
-|---|---|---|
-| Schedule is set weekly, per site, by a person | Interview two schedulers, watch one do it | If it's centralised and quarterly, the delivery mechanism and cadence both change |
-| POS captures capacity per screen reliably | Reconcile against the seating-plan system | Load factor's denominator is wrong and every number above is meaningless |
-| Refunds/exchanges are a small fraction | Refund rate by daypart from POS | Late refunds inflate load factor on exactly the days we're optimising |
-
-**Open questions, ranked by what they block:** Is pricing in scope, or fixed? (Decides
-whether framing C is even available.) Who owns the booking decision vs. the scheduling
-decision? (Decides whether D is reachable.) What does the scheduler do *today* — what's
-the baseline human process we have to beat?
-
-## 4 · Data model
-
-**Grain: one row per showing — theatre × screen × scheduled start time.** Fixing this
-sentence early prevents most downstream confusion.
-
-| Entity | Role | Notes |
-|---|---|---|
-| `Showing` | fact | The grain. Scheduled vs. actual start, cancellation flag |
-| `TicketSale` | fact | Per price class — utilisation without price class is misleading |
-| `Refund` / `Exchange` | fact | ⚠️ Arrives *after* the showing; late-arriving facts break naive load factor |
-| `Screen` | dimension | Seating capacity, format, turnaround minutes. Capacity changes on refurbishment — needs history |
-| `Theatre` | dimension | Site, region, market size |
-| `Title` | dimension | Runtime (drives how many showings fit), distributor, release date |
-| `PriceClass` | dimension | Concession, matinee, premium |
-| `Calendar` | **exogenous** | ⚠️ Holidays, school terms, local events, competing fixtures. The most-forgotten entity, and it dominates the highest-value days |
-| `StaffRoster` | operational | ⚠️ Needed to cost the churn guardrail — a recommendation nobody can staff is not a recommendation |
-
-The three flagged entities are the ones a generic answer omits, and each one changes a
-number rather than just adding detail.
-
-## 5 · Architecture
-
-| Layer | Decision | Alternative considered |
-|---|---|---|
-| Ingestion | Nightly batch from POS — schedules change weekly, so nightly is ample | CDC/streaming: real cost, no decision benefit at weekly cadence |
-| Landing | Immutable raw zone, partitioned by business date | Straight-to-warehouse: loses replay when refunds arrive late |
-| Conformed | Showing-grain fact with conformed screen/title/calendar dimensions; **late-arriving refunds handled by restatement, not update-in-place** | Mutable rows: breaks reproducibility of any number already reported |
-| Curated | Daypart load factor, revenue per screen-hour, turnaway proxy | — |
-| Serving | Batch-generated weekly recommendation set, with the constraint set versioned alongside it | Live optimisation service: unjustifiable at weekly cadence |
-| **Application** | **Into the scheduler's existing weekly workflow** — recommendations with the reason and the constraints they respect, and the ability to reject with a captured reason | A new dashboard: a second tool nobody opens |
-
-**Data quality checks**, each with a threshold, an owner, and a failure action: capacity
-non-null and > 0 for every active screen (blocks the run); showings-per-screen-per-day
-within plausible bounds (alerts); refund rate within historical band (flags the affected
-partition); calendar coverage for the next 90 days (alerts the data owner).
-
-**Access:** site managers see their own site; regional schedulers see their region;
-no PII needed at all for this problem — worth saying, because it removes a whole
-compliance surface.
-
-**Monitoring:** feed freshness and row-count deltas, recommendation acceptance rate,
-realised vs. predicted load factor per accepted recommendation.
-
-That last one matters most — the rejection reasons the app captures are the training signal
-for everything after the MVP.
-
-## 6 · MVP — the thinnest slice that proves value
-
-**One sentence:** for three theatres in one region, using eight weeks of history, recommend
-weekday-matinee showtime changes and deliver them as a weekly file to the regional
-scheduler.
-
-**Proves:** that recommendations beat the scheduler's own picks on held-out weeks. That's
-the only claim worth testing first.
-
-**Delivery:** a weekly spreadsheet and a short email. **Not an app.** Building UI before
-the recommendation has beaten a human is how these projects die.
-
-**Explicitly out of scope, with the reason:**
-
-| Cut | Why | Revisit when |
-|---|---|---|
-| Pricing | Doubles the problem and may be contractually impossible | Framing C, after pricing scope is confirmed |
-| Booking / title selection | Different decision owner entirely | After the scheduling loop is trusted |
-| All dayparts, all sites | Weekday matinee is worst-performing and lowest-risk to change | Once accepted recommendations beat baseline |
-| Real-time anything | Weekly decision cadence | Never, probably |
-| A UI | No value until the recommendation is trusted | Once acceptance rate justifies it |
-
-**Kill criterion:** if recommendations don't beat the scheduler's own picks on held-out
-weeks after two cycles, stop — the schedule is not the binding constraint, and that result
-is itself worth reporting.
-
-## 7 · Trade-offs and failure modes
-
-**Trade-offs:** optimise per-site (respects local demand, no chain-wide view) vs.
-chain-wide (portfolio effects, ignores local nuance) — lean per-site first, on *trust*.
-Recommend-and-approve (slow, builds trust, generates rejection data) vs. auto-apply (fast,
-one bad week destroys credibility) — lean recommend-and-approve, on *risk*.
-
-**Failure modes:**
-
-| Mode | Detection | Degradation | Blast radius |
+| Change | Affected | Unchanged | Response |
 |---|---|---|---|
-| Late refunds inflate load factor on holidays | Refund-lag distribution monitor | Report holiday figures with a lag and a confidence note | wrong answer |
-| POS feed gap on a peak day | Freshness + row-count check | Suppress the week's recommendation rather than emit one from partial data | wrong answer |
-| Recommends a schedule nobody can staff | Validate against `StaffRoster` before emitting | Drop the infeasible option, emit the next-best | operational |
-| **Cannibalisation** between adjacent showings of the same title | Compare per-showing vs. per-site-per-day totals | Constrain minimum gap between same-title showings | wrong answer |
-| Breaches a distributor minimum | Hard pre-emit constraint check | Refuse to emit; alert | **safety or legal** |
+| "Roll it out to another region" | Capacity reference | Aggregation job, prediction function, report | Swap hardcoded capacities for a sync from the seating-plan system. That's the tech debt coming due, on schedule |
+| "Must work if the site loses connectivity" | Report delivery | Everything upstream | Add a local cache of the last published report. Generation is untouched — the requirement is about *reaching* the user, not producing the answer |
 
-Cannibalisation is the sophisticated one: a recommender optimising each showing
-independently can find a local optimum that splits one audience across two half-empty
-screenings and reports both as improvements.
+## L7 · Rubric self-check
 
-## 8 · Talk track (45 minutes)
-
-| Minutes | Move | Phrasing that works |
+| Dimension | What the brief gives you | Still on you in the room |
 |---|---|---|
-| 0–5 | Restate; split measurement from decision | "There are two systems in this ask — one that tells us what utilisation *is*, and one that changes the schedule. The second depends on the first." |
-| 5–10 | Name the framings; pick one; flag D | "Before I design — is pricing in scope, or fixed? And is booking someone else's decision? That changes which problem I should be solving." |
-| 10–15 | Metrics, and lead with the guardrail | "The risk with load factor is that you can improve it by cutting showings, so I'd pair it with total admissions as a guardrail." |
-| 15–22 | Grain, then entities; call out calendar | "One row per showing. And I'd want a calendar dimension early — holidays and local events will dominate the days that matter most." |
-| 22–32 | End-to-end thin path, then go deep on one | "Let me sketch ingestion through to the scheduler's desk first, then go deep on the recommendation constraints — that's where this succeeds or fails." |
-| 32–40 | MVP and the cuts | "Three theatres, one daypart, eight weeks, delivered as a file. No UI until it beats the human." |
-| 40–45 | Failure modes and the kill criterion | "This breaks if refunds arrive late on exactly the holidays we're optimising. And if we can't beat the scheduler in two cycles, the schedule isn't the constraint." |
+| **Ambiguity handling** | All three elements triaged, the stakeholder gap named, four opening questions | Actually asking them before designing, and confirming out loud |
+| **Outcome orientation** | The reframe ties every choice to the scheduler's Friday deadline | Resisting the optimiser — it's the more impressive build and the wrong instinct |
+| **Scrappy** | Three bottlenecks costed, tech debt named, deferrals with blockers | Holding the line on "spreadsheet, no UI" when it feels unambitious |
+| **Technical depth** | Data-model depth with probes pre-answered | Going deeper than the brief when pushed twice |
+
+**Not served by any document:** *collaboration* and much of *user empathy* are properties
+of the live conversation. The brief can only hand you the questions that make them possible.
+
+## L8 · Talk track (45 min)
+
+| Min | Step | Move | Phrasing |
+|---|---|---|---|
+| 0–2 | 1 | Triage all three elements | "Before I design — who sets the schedule today, what data do we have, and what's the window to ship?" |
+| 2–10 | 2 | Excavate the workaround | "Walk me through how next week's grid actually gets made. And when you move a showtime, how do you find out if it worked?" |
+| 10–15 | 3 | Options; ask for the unlisted | "My instinct is a what-if checker rather than an optimiser. Are there contractual minimums we'd need to respect?" |
+| 15–20 | 4 | Scope against bottlenecks | "Build isn't the constraint — integration is. No documented POS API, so a connector eats most of the week." |
+| 20–25 | 5 | Requirements, then the number | "Two functional, two non-functional. And it's ~7,000 rows, so this fits in a spreadsheet — that rules out most of the architecture I might otherwise reach for." |
+| 25–40 | 6a | Deep dive, with permission | "The data model is where this gets *wrong* rather than just slow. I'd like to go deep there — does that work?" |
+| 40–45 | — | Next MVPs and the kill criterion | "If predicted load doesn't beat the scheduler's own picks in two cycles, the schedule isn't the binding constraint — and that's worth reporting." |

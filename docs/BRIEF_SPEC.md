@@ -1,27 +1,30 @@
 # `DecompositionBrief` — the core object
 
-One vague ask in, one filled brief out. The brief is built **progressively**, as the user
-makes choices — it is not a document the model writes in one shot.
+One vague ask in, one filled brief out, built **progressively** as the user makes choices.
+The layers follow the process in [`FRAMEWORK.md`](FRAMEWORK.md) in its own order —
+notably **MVP scoping (L3) before high-level design (L4)**, which is the step ordering that
+distinguishes a deliberate slice from a shrunken architecture.
 
 ## The spine: every layer is a `Decision`
 
-The product's whole claim is "it guides you through decisions." That has to be structural,
-not a prompt instruction, or it degrades into a chatbot handing over an answer. So one
-shape repeats at every layer: a question, 2–4 materially different options each carrying
-its own trade, a recommendation with a reason, and room for the user to overrule it.
+"It guides you through decisions" has to be structural or it degrades into a chatbot with a
+nice font. One shape repeats: a question, 2–4 options each carrying its own trade, one
+recommendation with a rationale, and the user's override. **Options not taken stay in the
+brief.** That is the difference between a study tool and an answer machine.
 
-The options the user **didn't** pick are never discarded. They stay in the brief and stay
-on screen. That is the difference between a study tool and an answer machine, and it's the
-part a generic chatbot doesn't do.
+## Layers
 
-## Mapping to the three competency areas
-
-| Competency area | Layers |
-|---|---|
-| **Problem Decomposition (Business & Data)** | 1 Framing · 2 Metrics · 3 Constraints · 4 Entities |
-| **Architecture & Governance** | 5 Architecture |
-| **Product Definition (Scoping & MVP)** | 6 MVP slice |
-| *Cross-cutting* | 7 Trade-offs & failure modes · 8 Talk track |
+| L | Layer | Framework step |
+|---|---|---|
+| 0 | Prompt triage — stakeholder, resources, time bound | 1 |
+| 1 | Pain point excavation — current workaround → reframe | 2 |
+| 2 | Solution options *(Decision)* | 3 |
+| 3 | MVP scope — coordination / integration / rollout | 4 |
+| 4 | High-level design — capped requirements, components | 5 |
+| 5 | Deep dive **or** customer present-back, by company | 6a / 6b |
+| 6 | Follow-up prep — next MVPs, requirement-change war-games | follow-ups |
+| 7 | Rubric self-check | rubric |
+| 8 | Talk track | — |
 
 ## Schema
 
@@ -35,8 +38,13 @@ const Choice = z.object({
   label: z.string(),
   detail: z.string(),
   optimizesFor: z.string(),
-  assumes: z.array(z.string()).min(1),
-  cannotAnswer: z.array(z.string()).min(1),
+  usesResources: z.array(z.string()).min(1),
+  // The step-3 move: if the better option needs something unlisted, ask — don't discard.
+  requiresUnlistedResource: z.object({
+    resource: z.string(),
+    askThisWay: z.string(),
+    fallbackIfNo: z.string(),
+  }).nullable(),
   effort: z.enum(["S", "M", "L", "XL"]),
   recommended: z.boolean(),
   rationale: z.string(),
@@ -50,160 +58,205 @@ const Decision = z.object({
   userOverride: z.string().nullable(),
 });
 
-// ───────── layer 2: metrics ─────────
+// ───────── L0: triage ─────────
 
-const Metric = z.object({
-  name: z.string(),
-  kind: z.enum(["primary", "secondary", "guardrail_only"]),
-  definition: z.string(),
-  baseline: z.object({
-    value: z.string().nullable(),
-    howEstablished: z.string(),
-    confidence: z.enum(["known", "estimable", "must_measure_first"]),
-  }),
-  target: z.object({ value: z.string(), basis: z.string() }),
-  guardrail: z.object({
-    metric: z.string(),
-    threshold: z.string(),
-    why: z.string(),
-  }).nullable(),
-});
+const Triage = z.object({
+  // The prompt names an entity; the stakeholder is often someone else entirely.
+  namedEntity: z.string(),
+  actualStakeholder: z.string(),
+  stakeholderGap: z.string().nullable(),   // non-null when they differ, explaining why
+  stakeholderConfidence: z.enum(["stated", "inferred", "must_confirm"]),
 
-// ───────── layer 4: entities ─────────
-
-const Entity = z.object({
-  name: z.string(),
-  grain: z.string(),
-  role: z.enum(["fact", "dimension", "exogenous", "operational"]),
-  fields: z.array(z.object({
-    name: z.string(),
-    type: z.string(),
-    nullable: z.boolean(),
-    note: z.string().nullable(),
-  })).min(1),
-  sourceSystem: z.string(),
-  owner: z.string(),
-  refresh: z.string(),
-  joinKeys: z.array(z.string()),
-  expectedProblems: z.array(z.string()),
-  oftenForgotten: z.boolean(),
-});
-
-// ───────── layer 5: architecture ─────────
-
-const ArchLayer = z.object({
-  layer: z.enum([
-    "ingestion", "landing", "conformed", "curated",
-    "serving", "application", "orchestration",
-  ]),
-  decision: Decision,
-  dataQualityChecks: z.array(z.object({
-    check: z.string(),
-    threshold: z.string(),
-    owner: z.string(),
-    onFail: z.string(),
+  resourcesGiven: z.array(z.string()),
+  resourcesToAskFor: z.array(z.object({
+    resource: z.string(),
+    whyItWouldHelp: z.string(),
+    askThisWay: z.string(),
   })),
-  accessControl: z.string().nullable(),
-  monitoring: z.array(z.string()),
-  scalingNote: z.string().nullable(),
+
+  timeBound: z.object({
+    value: z.string().nullable(),
+    source: z.enum(["stated", "must_ask"]),
+  }),
+
+  // Whatever is missing above becomes the opening questions. This is the brief's
+  // first output, not a gap in it.
+  openingQuestions: z.array(z.object({
+    question: z.string(),
+    targets: z.enum(["stakeholder", "resources", "time_bound", "success"]),
+    whyItMatters: z.string(),
+  })).min(2),
 });
 
-// ───────── layer 6: MVP ─────────
+// ───────── L1: pain point ─────────
 
-const MvpSlice = z.object({
-  oneSentence: z.string(),
+const PainPoint = z.object({
+  candidates: z.array(z.object({
+    painPoint: z.string(),
+    forWhom: z.string(),
+  })).min(2),
+  chosen: z.string(),
+  whyThisOne: z.string(),
+
+  // The lever for the whole layer: what do they do today?
+  currentWorkaround: z.object({
+    whatTheyDoToday: z.string(),
+    whereTimeIsActuallyLost: z.string(),
+    questionsThatRevealIt: z.array(z.string()).min(2),
+  }),
+
+  // Broad complaint → targeted problem. The highest-value output in the brief.
+  reframe: z.object({
+    broad: z.string(),
+    sharpened: z.string(),
+    whatThisChangesDownstream: z.string(),
+  }),
+});
+
+// ───────── L3: MVP ─────────
+
+const Bottleneck = z.object({
+  kind: z.enum(["coordination", "integration", "rollout"]),
+  assessment: z.string(),
+  costOfWindow: z.enum(["negligible", "some", "most", "blocks"]),
+  // Say it out loud — silent reasoning scores nothing.
+  narration: z.string(),
+});
+
+const MvpScope = z.object({
+  shipsInWindow: z.string(),
   provesWhat: z.string(),
   deliveryMechanism: z.string(),
-  walkingSkeleton: z.array(z.string()).min(3),
-  explicitlyOut: z.array(z.object({
+  // Build time is rarely the constraint. These three are.
+  bottlenecks: z.array(Bottleneck).length(3),
+  deliberateTechDebt: z.array(z.object({
+    shortcut: z.string(),
+    whyAcceptable: z.string(),
+    payBackWhen: z.string(),
+  })),
+  deferred: z.array(z.object({
     item: z.string(),
-    whyCut: z.string(),
-    revisitWhen: z.string(),
-  })).min(3),
-  timeline: z.array(z.object({
-    period: z.string(),
-    deliverable: z.string(),
-    exitCriterion: z.string(),
+    blockedBy: z.string(),
+    impact: z.enum(["low", "medium", "high"]),
+    landsInMvp: z.number().int().min(2),
   })).min(2),
-  killCriterion: z.string(),
+});
+
+// ───────── L4: design ─────────
+
+const Requirement = z.object({
+  statement: z.string(),
+  kind: z.enum(["functional", "non_functional"]),
+});
+
+const Component = z.object({
+  name: z.string(),
+  role: z.string(),
+  // Every component must earn its place against a requirement.
+  satisfiesRequirement: z.string(),
+  narration: z.string(),
+});
+
+const HighLevelDesign = z.object({
+  // Capped at 1-2 each. More than that means L3 under-scoped.
+  requirements: z.array(Requirement).min(2).max(4),
+  scale: z.object({
+    qualitativePrior: z.string(),
+    rulesOut: z.array(z.string()),
+    // A number only earns its place if the prior leaves a design fork open.
+    needsArithmetic: z.boolean(),
+    estimate: z.string().nullable(),
+  }),
+  components: z.array(Component).min(3),
+  dataFlow: z.array(z.string()).min(3),
+});
+
+// ───────── L5: the two endings ─────────
+
+const DeepDive = z.object({
+  area: z.string(),
+  chosenBecause: z.enum(["role_specialization", "most_complex", "own_spike"]),
+  reasoning: z.string(),
+  askPermissionLine: z.string(),
+  // Pluggable by area: data-model, ml, app-performance, integration, security.
+  template: z.enum(["data_model", "ml", "app_performance", "integration", "security"]),
+  depth: z.array(z.object({
+    topic: z.string(),
+    detail: z.string(),
+    likelyProbe: z.string(),
+    answer: z.string(),
+  })).min(3),
+});
+
+const PresentBack = z.object({
+  // Customer's words, not the architecture. No jargon.
+  whatTheyCanNowDo: z.string(),
+  jargonSwaps: z.array(z.object({ instead: z.string(), say: z.string() })).min(2),
+  keyTradeoffs: z.array(z.object({
+    decision: z.string(),
+    chose: z.string(),
+    because: z.string(),
+  })).min(1).max(2),
+  nextSteps: z.object({
+    shipsFirst: z.string(),
+    comesAfter: z.string(),
+    needFromYou: z.string(),
+  }),
 });
 
 // ───────── the brief ─────────
 
+export const RUBRIC_SERVED = [
+  "ambiguity_handling", "outcome_orientation", "scrappy", "technical_depth",
+] as const;
+
 export const DecompositionBrief = z.object({
   id: z.string(),
-  briefVersion: z.literal(1),
+  briefVersion: z.literal(2),
 
-  // Layer 0 — intake. Inferences are shown to the user and are editable.
-  intake: z.object({
-    rawAsk: z.string(),
-    restatement: z.string(),
-    inferred: z.object({
-      domain: z.string(),
-      orgType: z.string(),
-      decisionOwner: z.string(),
-      confirmed: z.boolean(),
-    }),
-  }),
+  rawAsk: z.string(),
+  restatement: z.string(),
+  // Palantir/Databricks end in a deep dive; OpenAI in a present-back.
+  companyMode: z.enum(["deep_dive", "present_back", "both"]),
 
-  // Layer 1 — the framing menu. This is the "ways to make it granular" step.
-  framing: Decision,
-  concreteObjective: z.string().nullable(),   // resolves once framing is selected
+  triage: Triage,                    // L0
+  painPoint: PainPoint,              // L1
+  solution: Decision,                // L2
+  concreteObjective: z.string().nullable(),
+  mvp: MvpScope,                     // L3
+  design: HighLevelDesign,           // L4
 
-  // Layer 2
-  metrics: z.array(Metric).min(3),
+  deepDive: DeepDive.nullable(),     // L5a
+  presentBack: PresentBack.nullable(),// L5b
 
-  // Layer 3
-  constraints: z.array(z.object({
-    constraint: z.string(),
-    kind: z.enum(["regulatory", "contractual", "physical", "budget", "org", "technical"]),
-    hard: z.boolean(),
-    implication: z.string(),
+  // L6 — precomputed follow-ups. Cheap, and reliably asked.
+  nextMvps: z.array(z.object({
+    version: z.number().int().min(2),
+    adds: z.string(),
+    unblockedBy: z.string(),
+    impact: z.enum(["low", "medium", "high"]),
   })).min(2),
-  assumptions: z.array(z.object({
-    assumption: z.string(),
-    howToValidate: z.string(),
-    ifWrong: z.string(),
-  })).min(3),
-  openQuestions: z.array(z.object({
-    question: z.string(),
-    whyItMatters: z.string(),
-    blocksWhat: z.string(),
-  })).min(3),
-
-  // Layer 4
-  grainStatement: z.string(),
-  entities: z.array(Entity).min(4),
-
-  // Layer 5
-  architecture: z.array(ArchLayer).min(4),
-
-  // Layer 6
-  mvp: MvpSlice,
-
-  // Layer 7
-  tradeoffs: z.array(z.object({
-    decision: z.string(),
-    optionA: z.object({ name: z.string(), cost: z.string() }),
-    optionB: z.object({ name: z.string(), cost: z.string() }),
-    axes: z.array(z.enum([
-      "cost", "latency", "complexity", "maintainability", "risk", "trust",
-    ])).min(2),
-    lean: z.string(),
+  requirementChanges: z.array(z.object({
+    change: z.string(),
+    componentsAffected: z.array(z.string()).min(1),
+    componentsUnchanged: z.array(z.string()),
+    response: z.string(),
   })).min(2),
-  failureModes: z.array(z.object({
-    mode: z.string(),
-    detection: z.string(),
-    degradation: z.string(),
-    blastRadius: z.enum(["cosmetic", "wrong_answer", "operational", "safety_or_legal"]),
-  })).min(3),
 
-  // Layer 8
+  // L7 — honest about what a document can and can't prepare.
+  rubricSelfCheck: z.array(z.object({
+    dimension: z.enum(RUBRIC_SERVED),
+    whatTheBriefGivesYou: z.string(),
+    stillOnYouInTheRoom: z.string(),
+  })).length(4),
+
+  // L8
   talkTrack: z.array(z.object({
     minuteRange: z.string(),
+    step: z.number().int().min(1).max(6),
     move: z.string(),
     phrasing: z.string(),
-  })).min(5),
+  })).min(6),
 });
 
 export type DecompositionBrief = z.infer<typeof DecompositionBrief>;
@@ -211,25 +264,51 @@ export type DecompositionBrief = z.infer<typeof DecompositionBrief>;
 
 ## Invariants the validator enforces
 
-Deterministic checks, run on every generated brief. These are the quality bar — a brief
-that fails any of them is regenerated, not shipped.
+Deterministic checks on every generated brief. A brief failing any of them is regenerated,
+not shipped.
 
-- **Every `primary` metric has a non-null `guardrail`.** Optimising a metric without
-  naming what you must not break is the single most common weak answer, and the guardrail
-  is the highest-signal field in the whole brief.
-- **`framing.options` ≥ 3, and no two share an `optimizesFor`.** Options that optimise the
-  same thing are rewordings, not framings, and collapse the layer into theatre.
-- **Exactly one `framing` option has `recommended: true`** — a menu with no recommendation
-  pushes the judgment back onto the user, which is the job they came to outsource.
-- **≥ 1 entity with `role: "exogenous"`.** Calendar, weather, local events, competitor
-  activity. Forgetting the outside world is the classic data-model miss.
-- **≥ 1 entity with `oftenForgotten: true`**, surfaced in the UI as a callout.
-- **`mvp.explicitlyOut` ≥ 3, each with a non-empty `whyCut`.** Naming the cuts *is* the
-  prioritisation skill; a scope section with nothing excluded hasn't prioritised anything.
-- **`mvp.killCriterion` non-empty** — what result would make you stop.
-- **Every `Decision` with a non-null `selectedId` references a real option id.**
-- **`architecture` covers at least ingestion, curated, serving, application.** Stopping
-  before the application layer is the most common architecture gap: the end user and the
-  decision they make with it are the point.
-- **`grainStatement` matches `/one row per/i`** — forcing the sentence that clarifies more
-  than any diagram.
+**Triage (L0)**
+- `stakeholderGap` is non-null whenever `namedEntity !== actualStakeholder` — the whole
+  point of the layer is surfacing that gap, not quietly resolving it.
+- Every element with `source: "must_ask"` or `confidence: "must_confirm"` has a matching
+  entry in `openingQuestions`. Nothing unknown goes unasked.
+
+**Pain point (L1)**
+- `reframe.broad !== reframe.sharpened`, and `sharpened` is longer and more specific.
+  A reframe that restates the prompt is the layer failing silently.
+- `currentWorkaround.questionsThatRevealIt` ≥ 2 — the reframe must be *reachable* by asking,
+  not asserted from nowhere.
+
+**Solution (L2)**
+- ≥ 2 options, no two sharing an `optimizesFor` — otherwise they're rewordings.
+- Exactly one `recommended: true`.
+- ≥ 1 option with a non-null `requiresUnlistedResource`, whenever such a resource plausibly
+  exists. Never asking for anything beyond the listed set forfeits a free upside.
+
+**MVP (L3)**
+- Exactly three `bottlenecks`, one of each kind, each with a non-empty `narration`.
+- Not all three may be `negligible` — a one-week window always costs something somewhere,
+  and a brief claiming otherwise hasn't scoped.
+- `deferred` ≥ 2, every item with a non-empty `blockedBy`.
+
+**Design (L4)**
+- 1–2 `functional` and 1–2 `non_functional`. **More than two of either is a hard fail** —
+  it means L3 under-scoped, and the fix is upstream, not here.
+- Every `component.satisfiesRequirement` matches a `requirements[].statement`. A component
+  satisfying nothing is unnecessary or reveals a missing requirement.
+- `scale.estimate` is non-null iff `scale.needsArithmetic` — no ritual arithmetic when the
+  qualitative prior already settles the design.
+
+**Endings (L5)**
+- `companyMode: "deep_dive"` → `deepDive` non-null; `"present_back"` → `presentBack`
+  non-null; `"both"` → both.
+- `presentBack.whatTheyCanNowDo` contains no term from the jargon blocklist (`vector store`,
+  `embedding`, `Kafka`, `p99`, `sharding`, …). The layer's entire purpose is de-jargoning,
+  so this is checkable rather than aspirational.
+- `presentBack.keyTradeoffs` ≤ 2 — it's a summary, not a recap.
+
+**Follow-ups (L6)**
+- `nextMvps` sorted by blocker dependency first, impact second; an item cannot precede the
+  thing it's `unblockedBy`.
+- `requirementChanges[].componentsUnchanged` non-empty. A change that rewrites everything
+  usually means the original design lacked seams.
