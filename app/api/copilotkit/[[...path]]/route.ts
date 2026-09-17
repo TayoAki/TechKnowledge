@@ -12,6 +12,7 @@ import {
   createCopilotHonoHandler,
 } from "@copilotkit/runtime/v2";
 import { PAIR_SYSTEM_PROMPT } from "@/agent/prompts";
+import { resolveModel } from "@/agent/model";
 
 const BASE_PATH = "/api/copilotkit";
 
@@ -19,10 +20,10 @@ const BASE_PATH = "/api/copilotkit";
  * The reviewer model. Judgment calls — is the reframe real, does the cut line
  * actually ship, does the design match the scale read — run here.
  *
- * CopilotKit's model union predates the current Claude generation but admits
- * any string, so the override is type-legal and the default is current.
+ * Resolved from the environment: OpenRouter when a key is present, otherwise
+ * Anthropic direct. See src/agent/model.ts and GET /api/health.
  */
-const MODEL = process.env.DECOMP_MODEL ?? "anthropic/claude-opus-5";
+const MODEL = resolveModel();
 
 const copilotRuntime = new CopilotRuntime({
   agents: {
