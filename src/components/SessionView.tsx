@@ -10,7 +10,7 @@
  *   - useHumanInTheLoop pauses the agent at a gate until the user answers
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import {
   useAgentContext,
@@ -34,6 +34,27 @@ import { PRESET_SPECS, SEGMENT_LABELS, type PresetId, type Posture } from "@/dom
 export function SessionView({ preset, rawAsk }: { preset: PresetId; rawAsk: string }) {
   const s = useSession(preset, rawAsk);
   const [depthDraft, setDepthDraft] = useState("");
+  const [sketch, setSketch] = useState(false);
+
+  useEffect(() => {
+    try {
+      setSketch(localStorage.getItem("decomp.sketch") === "on");
+    } catch {
+      /* private window or blocked storage — the default is fine */
+    }
+  }, []);
+
+  const toggleSketch = () => {
+    setSketch((on) => {
+      const next = !on;
+      try {
+        localStorage.setItem("decomp.sketch", next ? "on" : "off");
+      } catch {
+        /* non-fatal */
+      }
+      return next;
+    });
+  };
 
   const clockSummary = useMemo(() => clockSummaryForAgent(s.state.clock), [s.state.clock]);
   const coverageSummary = useMemo(() => coverageSummaryForAgent(s.coverage), [s.coverage]);
@@ -178,7 +199,7 @@ export function SessionView({ preset, rawAsk }: { preset: PresetId; rawAsk: stri
   const segment = s.segment;
 
   return (
-    <div className="shell">
+    <div className="shell" data-sketch={sketch ? "on" : "off"}>
       <ClockBar clock={s.state.clock} onJump={s.goBack} />
       <CoverageMeter coverage={s.coverage} onToggleTopic={s.touchTopic} />
 
@@ -194,6 +215,14 @@ export function SessionView({ preset, rawAsk }: { preset: PresetId; rawAsk: stri
         )}
         <button className="btn" onClick={s.advanceSegment}>
           finish {segment ? SEGMENT_LABELS[segment] : "segment"} →
+        </button>
+        <button
+          className="btn"
+          data-primary={sketch}
+          onClick={toggleSketch}
+          title="Hand-drawn borders over the same fixed shapes — the look changes, the structure does not"
+        >
+          {sketch ? "sketch: on" : "sketch: off"}
         </button>
         <label className="row" style={{ gap: 6 }}>
           <span className="hint">posture</span>

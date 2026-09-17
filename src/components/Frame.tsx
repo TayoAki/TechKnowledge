@@ -10,6 +10,7 @@
  */
 
 import type { PartialBrief } from "@/domain/brief";
+import { Sketchy } from "./Sketchy";
 
 export function Frame({
   brief,
@@ -34,6 +35,7 @@ export function Frame({
 
   return (
     <div className="frame">
+      <Sketchy sketchKey="frame-stakeholder" tone={actual ? "neutral" : "warn"} dashed={!actual}>
       <div className="box" data-unknown={!actual}>
         <div className="box-label">Stakeholder</div>
         {gap && <div className="struck">{named}</div>}
@@ -52,7 +54,13 @@ export function Frame({
           style={{ marginTop: 8 }}
         />
       </div>
+      </Sketchy>
 
+      <Sketchy
+        sketchKey="frame-resources"
+        tone={(t?.resourcesGiven?.length ?? 0) === 0 ? "warn" : "neutral"}
+        dashed={(t?.resourcesGiven?.length ?? 0) === 0}
+      >
       <div className="box" data-unknown={(t?.resourcesGiven?.length ?? 0) === 0}>
         <div className="box-label">Resources</div>
         {(t?.resourcesGiven ?? []).map((r) => (
@@ -72,7 +80,13 @@ export function Frame({
           </>
         )}
       </div>
+      </Sketchy>
 
+      <Sketchy
+        sketchKey="frame-time"
+        tone={t?.timeBound?.value ? "neutral" : "warn"}
+        dashed={!t?.timeBound?.value}
+      >
       <div className="box" data-unknown={!t?.timeBound?.value}>
         <div className="box-label">Time bound</div>
         {t?.timeBound?.value ? (
@@ -94,6 +108,7 @@ export function Frame({
           style={{ marginTop: 8 }}
         />
       </div>
+      </Sketchy>
     </div>
   );
 }

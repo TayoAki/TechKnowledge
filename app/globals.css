@@ -471,3 +471,53 @@ textarea { resize: vertical; min-height: 74px; }
   text-overflow: ellipsis;
   padding: 0 6px;
 }
+
+/* ── hand-drawn borders ─────────────────────────── */
+
+.sketchy { position: relative; min-width: 0; }
+
+.sketchy-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.sketchy-content { position: relative; }
+
+/*
+ * In sketch mode the real borders come off, so the rough stroke is the only
+ * outline. The elements keep their semantics, padding and data attributes —
+ * only the border is replaced.
+ */
+[data-sketch="on"] .box,
+[data-sketch="on"] .component,
+[data-sketch="on"] .lane,
+[data-sketch="on"] .metric {
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+[data-sketch="on"] .sketchy > .sketchy-content > .box,
+[data-sketch="on"] .sketchy > .sketchy-content > .component,
+[data-sketch="on"] .sketchy > .sketchy-content > .lane,
+[data-sketch="on"] .sketchy > .sketchy-content > .metric {
+  border-style: none;
+}
+
+[data-sketch="on"] .panel {
+  box-shadow: none;
+}
+
+/* Hand-drawn wants a hand-drawn typeface for labels, but only the labels —
+   body copy stays legible. */
+[data-sketch="on"] .box-label,
+[data-sketch="on"] .panel-title,
+[data-sketch="on"] .lane-name,
+[data-sketch="on"] .seg-name {
+  letter-spacing: 0.08em;
+}
+
+/* One code path: the rough SVG is always rendered, CSS decides if it shows.
+   With sketch off the normal borders stand and the SVG is hidden. */
+[data-sketch="off"] .sketchy-svg { display: none; }

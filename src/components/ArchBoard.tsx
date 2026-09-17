@@ -11,6 +11,7 @@
 
 import type { Component, PartialBrief } from "@/domain/brief";
 import type { Ghost } from "@/hooks/useSession";
+import { Sketchy } from "./Sketchy";
 
 export function ArchBoard({
   brief,
@@ -38,9 +39,14 @@ export function ArchBoard({
   const renderComponent = (c: Component, where: "inside" | "outside") => {
     const orphan = !reqIds.has(c.satisfiesRequirement);
     return (
+      <Sketchy
+        key={c.id}
+        sketchKey={`component-${c.id}`}
+        tone={orphan ? "danger" : where === "outside" ? "neutral" : "accent"}
+        dashed={where === "outside"}
+      >
       <div
         className="component"
-        key={c.id}
         data-orphan={orphan}
         data-cut={showCutLine ? where : undefined}
       >
@@ -50,6 +56,7 @@ export function ArchBoard({
           {orphan ? "?" : c.satisfiesRequirement}
         </span>
       </div>
+      </Sketchy>
     );
   };
 
@@ -86,7 +93,8 @@ export function ArchBoard({
         {showCutLine && outside.map((c) => renderComponent(c, "outside"))}
 
         {pending.map((g) => (
-          <div className="component" data-ghost="true" key={g.id}>
+          <Sketchy key={g.id} sketchKey={`ghost-${g.id}`} tone="ghost" dashed>
+          <div className="component" data-ghost="true">
             <span className="layer">ghost</span>
             <span style={{ flex: 1, minWidth: 0 }}>
               {g.label}
@@ -105,6 +113,7 @@ export function ArchBoard({
               reject
             </button>
           </div>
+          </Sketchy>
         ))}
       </div>
 
