@@ -206,8 +206,11 @@ const PresentBack = z.object({
 
 // ───────── the brief ─────────
 
-export const RUBRIC_SERVED = [
-  "ambiguity_handling", "outcome_orientation", "scrappy", "technical_depth",
+// All six are reachable once the board is co-created: collaboration and user empathy
+// are evidenced by how you worked with the AI, not asserted by the document.
+export const RUBRIC_DIMENSIONS = [
+  "ambiguity_handling", "user_empathy", "outcome_orientation",
+  "scrappy", "technical_depth", "collaboration",
 ] as const;
 
 export const DecompositionBrief = z.object({
@@ -243,12 +246,16 @@ export const DecompositionBrief = z.object({
     response: z.string(),
   })).min(2),
 
-  // L7 — honest about what a document can and can't prepare.
+  // L7 — scored from what actually happened during co-creation, not from the artefact.
   rubricSelfCheck: z.array(z.object({
-    dimension: z.enum(RUBRIC_SERVED),
-    whatTheBriefGivesYou: z.string(),
+    dimension: z.enum(RUBRIC_DIMENSIONS),
+    // What the session observed you do, unprompted vs. after a challenge.
+    evidence: z.string(),
+    unprompted: z.boolean(),
+    challengesEngaged: z.number().int().min(0),
+    challengesAbsorbedSilently: z.number().int().min(0),
     stillOnYouInTheRoom: z.string(),
-  })).length(4),
+  })).length(6),
 
   // L8
   talkTrack: z.array(z.object({
@@ -306,6 +313,15 @@ not shipped.
   `embedding`, `Kafka`, `p99`, `sharding`, …). The layer's entire purpose is de-jargoning,
   so this is checkable rather than aspirational.
 - `presentBack.keyTradeoffs` ≤ 2 — it's a summary, not a recap.
+
+**Self-check (L7)**
+- All six dimensions present. `collaboration` requires a non-zero
+  `challengesEngaged + challengesAbsorbedSilently` — with no challenges recorded the session
+  ran in draft or blank posture, and the dimension is reported as *not exercised* rather
+  than scored. Scoring a dimension the session never tested is the sycophancy failure in a
+  new costume.
+- A rejected ghost box with a stated reason counts as engaged, and scores above accepting
+  one. Collaboration is not compliance.
 
 **Follow-ups (L6)**
 - `nextMvps` sorted by blocker dependency first, impact second; an item cannot precede the

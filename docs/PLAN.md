@@ -47,28 +47,41 @@ deliberately rather than drifting into one. See §12.
 
 ## 3. The interaction model
 
-One box on the landing page. Everything else unfolds from it.
+One box on the landing page, then **eight phases you advance through deliberately** —
+co-creating the board rather than receiving it.
 
-1. **Paste the ask.** "We want to analyze seat utilization and recommend better showtimes."
-2. **Triage.** It separates the entity the prompt *names* from the actual stakeholder,
-   lists the resources given **and the ones worth asking for**, and pins the time bound.
-   Whatever's missing becomes the opening questions. This is the strongest single screen in
-   the product: from one sentence you get who you're really building for and the four
-   questions to ask before designing anything.
-3. **Pain-point excavation.** Candidate pain points, the one to pursue, and — the highest
-   -leverage field in the brief — **what the stakeholder does today**, which is what turns a
-   broad complaint into a targeted problem. The reframe it produces changes every
-   downstream layer.
-4. **The solution menu.** Two to four options that optimise for materially different things,
-   each naming the resources it uses and any resource it needs that the prompt never
-   offered, with the exact way to ask for it. One is recommended, with the reason.
-5. **The brief builds beside the chat**, layer by layer, streaming so sections materialise
-   rather than appearing in one burst. Each layer is another decision gate.
-6. **Every layer keeps a "what else / why this" toggle.** The options not taken stay in the
-   document. This is the learning mechanism and the thing a generic chatbot doesn't do.
-7. **Everything is editable**, and edits propagate — change the metric and the MVP's exit
-   criterion should follow.
-8. **Export** the filled brief, and save it to a personal library.
+The division of labour, which is the whole design:
+
+> **The AI draws the scaffold. You fill it. The AI pushes back.**
+
+If the AI fills the board, you learn nothing and can't use it in a room where nobody fills
+it for you. If it stays silent, you're drawing alone. The value is the third move, and it's
+the one a solo whiteboard can't give you. Full beat-by-beat walkthrough in
+[`FLOW.md`](FLOW.md).
+
+Each phase carries the round's own time budget, shown against elapsed — time allocation is
+itself scored. Going back is always permitted, because revisiting a decision when new
+information arrives is a positive signal, not a correction.
+
+**Three postures, switchable per phase:** *pair* (you lead, AI challenges — the default for
+phases 1–6), *draft* (AI fills, you edit — the default for the mechanical phases), and
+*blank* (you fill, AI silent until asked). The separately-planned blank mode collapses into
+this as the third posture, so there's no extra machinery.
+
+**The validators become the dialogue.** Every invariant in `BRIEF_SPEC.md` was written as a
+silent regeneration check for the auto-build path. In pair mode the same rule fires as a
+question to the user instead — an untagged component asks what it satisfies, a third
+functional requirement asks whether phase 4 was too generous. One rule set, two delivery
+modes, nothing maintained twice. This is the cheapest part of the build and the most of the
+product's felt value.
+
+**It reaches all six rubric dimensions.** Collaboration and most of user empathy are
+properties of a live exchange, so a finished document cannot prepare them — but co-creating
+rehearses the exchange directly, and both become observable: whether the workaround question
+came before the prompt, whether a challenge was engaged or absorbed silently, whether a
+suggestion was rejected *with a reason*. Honest caveat, enforced in the schema: this only
+holds in pair posture. A draft-posture session reports those dimensions as *not exercised*
+rather than scoring them.
 
 The process being encoded is specified in [`FRAMEWORK.md`](FRAMEWORK.md) and the layer
 schema in [`BRIEF_SPEC.md`](BRIEF_SPEC.md).
@@ -299,7 +312,8 @@ has already read.
 | **Generic output.** The failure that kills the product. | Domain packs, specificity evals in CI, and a human-reviewable pack authoring path. Treat "could this sentence appear in any brief?" as a bug. |
 | **"I could just ask a chatbot."** | §7. Lead with the triage screen and the reframe — the stakeholder gap, the resource you should have asked for, the current workaround. A chat transcript doesn't reliably surface any of them, and they're what the round actually scores. |
 | **It hands you fish.** | Blank mode; positioning as prep-and-real-work rather than in-room. Be straight about this — overclaiming is how you lose the users who'd pay most. |
-| **Perceived latency** — eight sequential calls. | Stream per layer, render on arrival, let reading start at layer 1. Never a single spinner. |
+| **Reactive-loop cost.** Co-creation means the agent runs on board edits, not just messages. | Two tiers: a debounced Haiku watcher for structural challenges, one Opus reviewer per phase exit. Without the split every keystroke pays Opus prices. |
+| **Challenge fatigue.** An AI that questions every box becomes noise and gets ignored. | Debounce, cap challenges per phase, and never repeat one the user has explicitly dismissed. Silence is a feature once the board is sound. |
 | **Pack maintenance** doesn't scale with headcount. | Ten good packs, not a thousand thin ones. Mine the override log — users tell you what's wrong for free. |
 | **CopilotKit moves fast**; v2 reorganised the hooks and some docs are placeholders. | Pin versions, keep domain logic behind our own interfaces, keep the AG-UI boundary thin. |
 | **Content provenance — the sharpest legal risk.** The process model is drawn from a *paid* third-party course, which makes this materially more acute than working from a public post. | Encode the process; never ship the source text — no lesson prose, rubric descriptors, or worked narration copied through into briefs, prompts, packs, or marketing. Our rubric wording is original. Never ship their prompt bank: briefs decompose *the user's own* ask, which is both safer and the better product. Keep the reference list in-repo so each idea's provenance stays traceable. See [`FRAMEWORK.md`](FRAMEWORK.md) §Provenance, and spend a lawyer's hour before launch. |

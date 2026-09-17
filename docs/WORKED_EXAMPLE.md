@@ -169,15 +169,20 @@ Note 4.0 is high-impact but can't be sequenced first — it depends on the trust
 
 ## L7 · Rubric self-check
 
-| Dimension | What the brief gives you | Still on you in the room |
-|---|---|---|
-| **Ambiguity handling** | All three elements triaged, the stakeholder gap named, four opening questions | Actually asking them before designing, and confirming out loud |
-| **Outcome orientation** | The reframe ties every choice to the scheduler's Friday deadline | Resisting the optimiser — it's the more impressive build and the wrong instinct |
-| **Scrappy** | Three bottlenecks costed, tech debt named, deferrals with blockers | Holding the line on "spreadsheet, no UI" when it feels unambitious |
-| **Technical depth** | Data-model depth with probes pre-answered | Going deeper than the brief when pushed twice |
+Scored from what the session observed, in rubric order. "Unprompted" is the column that
+matters — doing the right thing after being asked to scores below doing it first.
 
-**Not served by any document:** *collaboration* and much of *user empathy* are properties
-of the live conversation. The brief can only hand you the questions that make them possible.
+| Dimension | Evidence from this session | Still on you in the room |
+|---|---|---|
+| **Ambiguity handling** | All three elements triaged; stakeholder gap named; four opening questions | Asking them out loud before designing |
+| **User empathy** | The workaround question, and where the time actually goes | Asking it *before* the AI prompts you — the session records which |
+| **Outcome orientation** | The reframe ties every choice to the scheduler's Friday deadline | Resisting the optimiser: it's the more impressive build and the wrong instinct |
+| **Scrappy** | Three bottlenecks costed, tech debt named, deferrals with blockers | Holding "spreadsheet, no UI" when it feels unambitious |
+| **Technical depth** | Data-model depth, probes pre-answered | Going deeper than the board when pushed twice |
+| **Collaboration** | Ghost box (capacity reference) offered and accepted at ⑤ | Rejecting one *with a reason* — collaboration is not compliance |
+
+The last two rows are only scorable because the board was co-created in **pair** posture.
+Run in draft, they report as *not exercised* rather than scored.
 
 ## L8 · Talk track (45 min)
 

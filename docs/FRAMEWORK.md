@@ -130,11 +130,17 @@ below are ours; the dimension set is the course's.
 | **Technical depth** | Real depth in at least one area that holds up under probing | Even, shallow coverage everywhere; buzzwords instead of mechanism |
 | **Collaboration** | Using the interviewer as a thought partner — picking up cues, folding in their input | Treating them as an examiner or an audience; working silently |
 
-Two of these are properties of a *live conversation*, not of a document: **collaboration**
-and much of **user empathy** are about how you use the interviewer in the room. A brief
-cannot supply them — it can only prepare the questions that make them possible. We say so
-plainly rather than implying the brief covers all six. The four a brief genuinely serves are
-ambiguity handling, outcome orientation, scrappy, and technical depth.
+Two of these — **collaboration** and much of **user empathy** — are properties of a live
+exchange rather than of an artefact. A brief handed to you finished cannot supply them; it
+can only prepare the questions that make them possible.
+
+**Co-creating the board reaches them anyway.** When you build the architecture with the AI
+pushing back, you are rehearsing the exchange itself, so both become observable: whether you
+asked the workaround question before being prompted, whether you engaged a challenge or
+absorbed it silently, whether you rejected a suggestion *with a reason*. See
+[`FLOW.md`](FLOW.md). The honest caveat is that this only holds in **pair** posture — a
+session run in draft posture has not exercised them, and the self-check reports them as not
+exercised rather than scoring them.
 
 ## Provenance
 
