@@ -23,6 +23,8 @@ import { CoverageMeter } from "./CoverageMeter";
 import { Challenges } from "./Challenges";
 import { Frame } from "./Frame";
 import { ArchBoard } from "./ArchBoard";
+import { MetricsGrid } from "./MetricsGrid";
+import { WeekBar } from "./WeekBar";
 import { useSession } from "@/hooks/useSession";
 import { clockSummaryForAgent } from "@/domain/clock";
 import { coverageSummaryForAgent, type TopicId, type TrackId } from "@/domain/coverage";
@@ -219,16 +221,30 @@ export function SessionView({ preset, rawAsk }: { preset: PresetId; rawAsk: stri
             </div>
 
             {segment === "decomposition" && (
-              <Frame brief={s.state.brief} onEdit={s.patchBrief} />
+              <div className="stack">
+                <Frame brief={s.state.brief} onEdit={s.patchBrief} />
+                <div>
+                  <div className="panel-title">Success metrics</div>
+                  <MetricsGrid brief={s.state.brief} onEdit={s.patchBrief} />
+                </div>
+              </div>
             )}
 
             {(segment === "architecture" || segment === "product") && (
-              <ArchBoard
-                brief={s.state.brief}
-                ghosts={s.state.ghosts}
-                showCutLine={segment === "product"}
-                onResolveGhost={s.resolveGhost}
-              />
+              <div className="stack">
+                <ArchBoard
+                  brief={s.state.brief}
+                  ghosts={s.state.ghosts}
+                  showCutLine={segment === "product"}
+                  onResolveGhost={s.resolveGhost}
+                />
+                {segment === "product" && (
+                  <div>
+                    <div className="panel-title">Where the window goes</div>
+                    <WeekBar brief={s.state.brief} onEdit={s.patchBrief} />
+                  </div>
+                )}
+              </div>
             )}
 
             {segment === "depth" && (

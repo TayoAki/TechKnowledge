@@ -402,3 +402,72 @@ textarea { resize: vertical; min-height: 74px; }
   .segbar { flex-wrap: wrap; }
   .seg { flex: 1 1 128px; }
 }
+
+/* ── metrics ─────────────────────────────────────── */
+
+.metric {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+.metric[data-needs-guardrail="true"] {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.metric-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.metric-head input { flex: 1; }
+
+.metric-cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.cell { display: flex; flex-direction: column; gap: 3px; }
+
+.cell-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+}
+
+/* ── the week bar ───────────────────────────────── */
+
+.weekbar {
+  display: flex;
+  gap: 3px;
+  height: 46px;
+}
+
+.lane {
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  transition: flex-grow 320ms ease;
+}
+.lane[data-cost="negligible"] { background: transparent; }
+.lane[data-cost="some"] { background: var(--accent-soft); border-color: var(--accent); }
+.lane[data-cost="most"] { background: var(--warn-soft); border-color: var(--warn); }
+.lane[data-cost="blocks"] { background: var(--danger-soft); border-color: var(--danger); }
+
+.lane-name {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 6px;
+}

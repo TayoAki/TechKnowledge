@@ -353,3 +353,36 @@ describe("reframe heuristic", () => {
     expect(isReframeSubstantive("", "something")).toBe(false);
   });
 });
+
+describe("challenge noise (regression)", () => {
+  it("says a per-item rule once, not once per item", () => {
+    // Three unnarrated bottlenecks produced three copies of the same sentence
+    // in the UI, which is how you teach someone to ignore the panel.
+    const r = run(
+      mutate((b) =>
+        b.product.bottlenecks.forEach((x: any) => (x.narration = "")),
+      ),
+    );
+    const shown = challengesForSegment(r, "product", { max: 10 });
+    const unnarrated = shown.filter((i) => i.code === "bottleneck_unnarrated");
+    expect(unnarrated).toHaveLength(1);
+  });
+
+  it("still reports every instance in the underlying report", () => {
+    // Deduping is a presentation concern; the report itself stays complete.
+    const r = run(
+      mutate((b) =>
+        b.product.bottlenecks.forEach((x: any) => (x.narration = "")),
+      ),
+    );
+    expect(
+      r.issues.filter((i) => i.code === "bottleneck_unnarrated").length,
+    ).toBe(3);
+  });
+
+  it("keeps the hard instance when a code appears at both severities", () => {
+    const r = run(mutate((b) => (b.decomposition.grainStatement = "stuff")));
+    const shown = challengesForSegment(r, "decomposition", { max: 10 });
+    expect(new Set(shown.map((i) => i.code)).size).toBe(shown.length);
+  });
+});

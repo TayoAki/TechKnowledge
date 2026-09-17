@@ -57,6 +57,29 @@ for (const scheme of ["light", "dark"]) {
     await page.waitForTimeout(200);
     await page.screenshot({ path: `${OUT}/04-coverage-light.png` });
 
+    // Already in Architecture by this point, so one more advance reaches
+    // Product Definition, where the week bar lives.
+    await page.getByRole("button", { name: /^finish/ }).click();
+    await page.waitForSelector(".weekbar", { timeout: 10000 });
+
+    const laneWidth = async (kind) =>
+      (await page.locator(`.lane[title]`).nth(["coordination", "integration", "rollout"].indexOf(kind)).boundingBox())
+        ?.width ?? 0;
+
+    const before = await laneWidth("integration");
+    await page
+      .locator("label")
+      .filter({ hasText: "integration" })
+      .locator("select")
+      .selectOption("most");
+    await page.waitForTimeout(600);
+    const after = await laneWidth("integration");
+    await page.screenshot({ path: `${OUT}/05-weekbar-light.png` });
+
+    console.log(
+      `integration lane: ${Math.round(before)}px -> ${Math.round(after)}px`,
+      after > before * 1.5 ? "(grew)" : "(DID NOT GROW)",
+    );
     console.log("clock ticked to:", remaining);
     console.log("segments rendered:", await page.locator(".seg").count());
     console.log("coverage rows:", await page.locator(".cov-row").count());

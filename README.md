@@ -51,6 +51,57 @@ Cutting across all three — **breadth in both tracks, depth in exactly one:**
 Coverage is tracked live. Depth in one track doesn't excuse silence in the other, so gaps get
 challenged — *schema evolution* and *UX* loudest, being the two most commonly skipped.
 
+## Running it
+
+```bash
+npm install --legacy-peer-deps      # see the note below
+cp .env.example .env.local          # add an ANTHROPIC_API_KEY
+npm run dev                         # http://localhost:3000
+```
+
+```bash
+npm run verify                      # typecheck + 96 tests + production build
+npm run smoke                       # browser smoke test (needs a running server)
+```
+
+The board, clock and coverage meter work without an API key; only the pair
+partner needs one.
+
+**Install note.** `@copilotkit/runtime` pulls in `@copilotkit/channels-intelligence`,
+which publishes `vitest` as a *peer dependency*. That crashes npm's dependency
+resolver outright (`Cannot read properties of null (reading 'edgesOut')`), so
+`--legacy-peer-deps` is required — and because that skips peers, `vite` is
+installed explicitly for vitest to run. TypeScript is pinned to 6 because
+Next 15 rejects TypeScript 7, and the `@` alias is set in `next.config.mjs`
+rather than inferred from tsconfig paths, which webpack did not pick up.
+
+## What's built
+
+| Layer | State |
+|---|---|
+| `src/domain/` — clock, coverage, schema, validators, worked-example fixture | Complete, 96 tests |
+| `app/api/copilotkit/` — runtime endpoint on `BuiltInAgent` | Complete |
+| `src/agent/prompts.ts` — pair-partner prompt and per-turn context | Complete |
+| `src/components/` — clock bar, coverage meter, frame, architecture + cut line, metrics grid, week bar, pushback rail | Complete |
+| Export, threads/persistence, present-back panel | Not built |
+
+The agent loop is wired but **unexercised** — running it needs an API key this
+environment does not have. Everything else is verified by test or by browser.
+
+### Two bugs the browser caught that the unit tests could not
+
+Worth knowing, because both are the kind that hide behind green tests:
+
+- **The clock was frozen.** Storing elapsed minutes rounded to 0.1 meant a
+  one-second tick (0.0167 min) rounded to zero every time. 87 tests passed
+  because they all ticked in whole minutes. Fixing the accumulator wasn't
+  enough either — `minutesRemaining` was rounded the same way, so the display
+  still sat at 60:00. State keeps full precision now; only the display rounds.
+- **The pushback panel repeated itself.** A per-item rule (three unnarrated
+  bottlenecks) printed the same sentence three times — exactly the challenge
+  fatigue the plan warns about. Challenges are now deduped by code for display
+  while the report keeps every instance.
+
 ## Status
 
 Planning — nothing is built. Start at **M0** in `docs/PLAN.md`: one week, no UI, ten briefs

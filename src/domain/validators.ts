@@ -697,8 +697,19 @@ export function challengesForSegment(
   opts: { max?: number; dismissed?: Set<string> } = {},
 ): Issue[] {
   const { max = 3, dismissed = new Set<string>() } = opts;
+
+  // One per code. A rule that fires per item — three unnarrated bottlenecks,
+  // say — would otherwise say the same sentence three times, which is the
+  // fastest way to train someone to ignore the panel.
+  const seen = new Set<string>();
+
   return report.issues
     .filter((i) => i.segment === segment && !dismissed.has(i.code))
     .sort((a, b) => (a.severity === b.severity ? 0 : a.severity === "hard" ? -1 : 1))
+    .filter((i) => {
+      if (seen.has(i.code)) return false;
+      seen.add(i.code);
+      return true;
+    })
     .slice(0, max);
 }
