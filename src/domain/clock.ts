@@ -68,9 +68,13 @@ export function createClock(preset: PresetId): ClockState {
  * does not yet reallocate the rest of the session.
  */
 function recompute(clock: ClockState): ClockState {
+  // Keep every stored figure at fine precision. Quantising here made a
+  // one-second tick invisible: minutesRemaining rounded straight back to the
+  // starting total, so the countdown appeared frozen. Rounding belongs in the
+  // display layer, not the state.
   const segments = clock.segments.map((s) => ({
     ...s,
-    overranBy: Math.max(0, round1(s.elapsedMinutes - s.budgetMinutes)),
+    overranBy: Math.max(0, round(s.elapsedMinutes - s.budgetMinutes, 4)),
   }));
 
   const spent = segments.reduce((n, s) => n + s.elapsedMinutes, 0);
@@ -81,9 +85,9 @@ function recompute(clock: ClockState): ClockState {
   return {
     ...clock,
     segments,
-    debtMinutes: round1(debtMinutes),
+    debtMinutes: round(debtMinutes, 4),
     minutesRemaining:
-      clock.totalMinutes === null ? 0 : round1(clock.totalMinutes - spent),
+      clock.totalMinutes === null ? 0 : round(clock.totalMinutes - spent, 4),
   };
 }
 
@@ -116,7 +120,9 @@ export function tick(clock: ClockState, minutes: number): ClockState {
     ...clock,
     segments: clock.segments.map((s) =>
       s.segment === active.segment
-        ? { ...s, elapsedMinutes: round1(s.elapsedMinutes + minutes) }
+        ? // Fine precision on the accumulator. Rounding this to 0.1 min would
+          // discard every sub-6-second tick and the clock would never move.
+          { ...s, elapsedMinutes: round(s.elapsedMinutes + minutes, 4) }
         : s,
     ),
   });
@@ -194,6 +200,12 @@ export function clockSummaryForAgent(clock: ClockState) {
   };
 }
 
+function round(n: number, places: number): number {
+  const f = 10 ** places;
+  return Math.round(n * f) / f;
+}
+
+/** Display precision for derived figures. */
 function round1(n: number): number {
-  return Math.round(n * 10) / 10;
+  return round(n, 1);
 }

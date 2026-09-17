@@ -170,3 +170,54 @@ describe("agent summary", () => {
     expect(s.minutesRemaining).toBe(0);
   });
 });
+
+describe("sub-minute ticking (regression)", () => {
+  it("accumulates one-second ticks instead of rounding them away", () => {
+    // The browser smoke test caught this: rounding the accumulator to 0.1 min
+    // discarded every tick smaller than 6 seconds, so the clock never moved.
+    let c = createClock("full_60");
+    const oneSecond = 1 / 60;
+    for (let i = 0; i < 30; i++) c = tick(c, oneSecond);
+    expect(activeSegment(c)!.elapsedMinutes).toBeCloseTo(0.5, 2);
+    expect(c.minutesRemaining).toBeCloseTo(59.5, 1);
+  });
+
+  it("a single one-second tick moves the clock at all", () => {
+    const c = tick(createClock("full_60"), 1 / 60);
+    expect(activeSegment(c)!.elapsedMinutes).toBeGreaterThan(0);
+  });
+
+  it("stays accurate over a full segment's worth of seconds", () => {
+    let c = createClock("full_60");
+    for (let i = 0; i < 18 * 60; i++) c = tick(c, 1 / 60);
+    expect(activeSegment(c)!.elapsedMinutes).toBeCloseTo(18, 1);
+    expect(activeSegment(c)!.overranBy).toBeCloseTo(0, 1);
+  });
+});
+
+describe("the countdown is visible at one-second granularity (regression)", () => {
+  it("minutesRemaining reflects a single second, not a 6-second quantum", () => {
+    // Quantising stored figures to 0.1 min made the countdown appear frozen:
+    // 60 - 0.0167 rounded back to 60.0 and the display never changed.
+    const c = tick(createClock("full_60"), 1 / 60);
+    expect(c.minutesRemaining).toBeLessThan(60);
+    expect(c.minutesRemaining).toBeGreaterThan(59.9);
+  });
+
+  it("every second produces a distinct remaining value", () => {
+    let c = createClock("full_60");
+    const seen = new Set<number>();
+    for (let i = 0; i < 5; i++) {
+      c = tick(c, 1 / 60);
+      seen.add(c.minutesRemaining);
+    }
+    expect(seen.size).toBe(5);
+  });
+
+  it("overrun accrues at one-second granularity too", () => {
+    let c = tick(createClock("full_60"), 18); // exactly at budget
+    expect(activeSegment(c)!.overranBy).toBe(0);
+    c = tick(c, 1 / 60);
+    expect(activeSegment(c)!.overranBy).toBeGreaterThan(0);
+  });
+});

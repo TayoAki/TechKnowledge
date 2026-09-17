@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CopilotKit } from "@copilotkit/react-core/v2";
 import { CopilotSidebar } from "@copilotkit/react-ui";
-import "@copilotkit/react-ui/v2/styles.css";
+import "@copilotkit/react-ui/styles.css";
 import { SessionView } from "@/components/SessionView";
 import { PRESETS, PRESET_SPECS, type PresetId } from "@/domain/segments";
 
