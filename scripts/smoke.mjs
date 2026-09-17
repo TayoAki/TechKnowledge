@@ -34,7 +34,7 @@ for (const scheme of ["light", "dark"]) {
 
   // Drive the intake: load the example ask, then begin.
   await page.getByRole("button", { name: "use the example" }).click();
-  await page.getByRole("button", { name: "begin" }).click();
+  await page.getByRole("button", { name: /pair-design it/i }).click();
   await page.waitForSelector(".segbar", { timeout: 15000 });
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${OUT}/02-board-${scheme}.png` });
@@ -85,6 +85,45 @@ for (const scheme of ["light", "dark"]) {
     console.log("coverage rows:", await page.locator(".cov-row").count());
     console.log("challenges shown:", await page.locator(".challenge").count());
     console.log("active segment:", await page.locator('.seg[data-status="active"] .seg-name').innerText());
+  }
+
+  // Play Guess the Architecture through to convergence. The counter must
+  // strictly decrease and the board must end with nothing undecided.
+  if (scheme === "light") {
+    await page.goto("http://127.0.0.1:3100/", { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: /guess the architecture/i }).click();
+    await page.waitForSelector(".guess-count", { timeout: 10000 });
+
+    const counts = [];
+    let asked = 0;
+    for (; asked < 20; asked++) {
+      counts.push(parseInt(await page.locator(".guess-count").innerText(), 10));
+      const opts = page.locator(".guess-opt");
+      if ((await opts.count()) === 0) break;
+      await opts.first().click();
+      await page.waitForTimeout(120);
+    }
+    const finalCount = parseInt(await page.locator(".guess-count").innerText(), 10);
+    // The loop already records the count before each answer, so on convergence
+    // the last reading is the same number — don't double-record it.
+    if (counts[counts.length - 1] !== finalCount) counts.push(finalCount);
+
+    const undecided = await page.locator('.node[data-status="undecided"]').count();
+    const certain = await page.locator('.node[data-status="certain"]').count();
+    const excluded = await page.locator('.node[data-status="excluded"]').count();
+    const strictlyDecreasing = counts.every((c, i) => i === 0 || c < counts[i - 1]);
+
+    await page.screenshot({ path: `${OUT}/06-guess-solved-light.png` });
+
+    console.log(`guess: ${counts.join(" -> ")} in ${asked} questions`);
+    console.log(
+      `guess board: ${certain} certain, ${undecided} undecided, ${excluded} ruled out`,
+      finalCount === 1 && undecided === 0 ? "(converged)" : "(DID NOT CONVERGE)",
+    );
+    console.log("candidate count strictly decreasing:", strictlyDecreasing);
+    if (finalCount !== 1 || undecided !== 0 || !strictlyDecreasing) {
+      errors.push(`[guess] did not converge cleanly: ${counts.join(" -> ")}`);
+    }
   }
 
   await ctx.close();

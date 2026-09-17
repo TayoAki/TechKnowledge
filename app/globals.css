@@ -521,3 +521,94 @@ textarea { resize: vertical; min-height: 74px; }
 /* One code path: the rough SVG is always rendered, CSS decides if it shows.
    With sketch off the normal borders stand and the SVG is hidden. */
 [data-sketch="off"] .sketchy-svg { display: none; }
+
+/* ── guess the architecture ─────────────────────── */
+
+.guess-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.guess-count {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.guess-q { padding: 14px 16px; }
+
+.guess-q-text {
+  font-size: 17px;
+  line-height: 1.45;
+  margin: 4px 0 12px;
+}
+
+.guess-opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  font-size: 14.5px;
+}
+.guess-opt:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.nodegrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+  gap: 6px;
+}
+
+.node {
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+}
+.node[data-status="certain"] { color: var(--ink); font-weight: 550; }
+.node[data-status="undecided"] { color: var(--ink-faint); }
+.node[data-status="excluded"] {
+  color: var(--ink-faint);
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.decided {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border-left: 2px solid var(--accent);
+  padding: 4px 0 4px 10px;
+}
+
+.decided-n {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  min-width: 14px;
+}
+
+.decided-answer { font-size: 14px; }
+
+.guess-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.guess-pitch {
+  border-top: 1px dashed var(--line);
+  padding-top: 14px;
+  margin-top: 6px;
+}

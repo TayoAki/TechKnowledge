@@ -51,6 +51,26 @@ Cutting across all three — **breadth in both tracks, depth in exactly one:**
 Coverage is tracked live. Depth in one track doesn't excuse silence in the other, so gaps get
 challenged — *schema evolution* and *UX* loudest, being the two most commonly skipped.
 
+## Two modes
+
+**Pair-design** — paste a vague ask and co-create the board across three assessed areas on a
+60-minute clock. The AI draws the scaffold, you fill it, it pushes back.
+
+**Guess the Architecture** — twenty questions against the design space. The AI asks in plain
+business language, every answer eliminates candidate architectures, and any component shared
+by every survivor is already certain, so the board fills itself in as it narrows. No ask
+required, and you don't need to know the answer to play.
+
+```
+40 architectures -> 16 -> 8 -> 4 -> 2 -> 1     (five questions)
+```
+
+Questions are ordered by information gain — the most balanced split first — which is why it
+converges in about five rather than one-per-fork. Question wording is checked against a
+jargon blocklist in CI: "is this a deadline or does someone watch it continuously?" is
+answerable without knowing the architecture, "batch or streaming?" is not. Translating the
+first into the second is the thing the round actually tests.
+
 ## Running it
 
 ```bash
